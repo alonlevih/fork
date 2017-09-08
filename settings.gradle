@@ -9,7 +9,6 @@
  */
 
 include ':fork-common'
-include ':fork-client'
 include ':fork-runner'
 include ':fork-gradle-plugin'
 include ':fork-reporter'

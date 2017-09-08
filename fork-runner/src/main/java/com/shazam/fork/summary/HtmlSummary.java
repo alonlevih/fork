@@ -25,4 +25,5 @@ public class HtmlSummary {
 	public ArrayList<String> ignoredTests;
     public String overallStatus;
 	public ArrayList<String> failedTests;
+	public ArrayList<String> flakyTests;
 }

@@ -23,14 +23,13 @@ public enum Diagnostics {
             return NONE;
         }
 
+        int apiLevelInt = Integer.parseInt(apiLevel);
         boolean supportsScreenRecord =
-                deviceInterface.supportsFeature(SCREEN_RECORD) &&
-                !"Genymotion".equals(deviceInterface.getProperty("ro.product.manufacturer"));
+                !"Genymotion".equals(deviceInterface.getProperty("ro.product.manufacturer")) || apiLevelInt > 24;
         if (supportsScreenRecord) {
             return VIDEO;
         }
 
-        int apiLevelInt = Integer.parseInt(apiLevel);
         if (apiLevelInt >= 16) {
             return SCREENSHOTS;
         }

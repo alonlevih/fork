@@ -17,10 +17,12 @@
             <div class="hero-unit {{status}}">
                 <h1>{{prettyMethodName}}</h1>
                 <p>{{prettyClassName}} - Took {{timeTaken}}s on {{deviceSerial}} ({{deviceModelDespaced}})</p>
-                <p><a href="../{{plainPoolName}}.html">Other tests for this pool</a> - <a href="../../../logcat/{{plainPoolName}}/{{deviceSafeSerial}}/{{plainClassName}}%23{{plainMethodName}}.log">Log file</a></p>
+                <p><a href="../{{plainPoolName}}.html">Other tests for this pool</a></p>
+                <p><a href="../../../logcat/{{plainPoolName}}/{{deviceSafeSerial}}/{{plainClassName}}%23{{plainMethodName}}.log">Log file</a></p>
+                <p><a href="../../../data/{{plainPoolName}}/{{deviceSafeSerial}}/{{plainClassName}}%23{{plainMethodName}}/*zip*/Sessions_{{plainClassName}}%23{{plainMethodName}}.zip">Sessions</a></p>
             </div>
             {{#diagnosticVideo}}
-            <video class="diagnostic {{status}}" width="35%" height="35%" controls src="../../../screenrecord/{{plainPoolName}}/{{deviceSafeSerial}}/{{plainClassName}}%23{{plainMethodName}}.mp4" type="video/mp4">
+            <video class="diagnostic {{status}}" width="35%" height="35%" controls src="../../../screenrecordapp/{{plainPoolName}}/{{deviceSafeSerial}}/{{plainClassName}}%23{{plainMethodName}}.mp4" type="video/mp4">
                 Is video supported in this browser?
             </video>
             {{/diagnosticVideo}}

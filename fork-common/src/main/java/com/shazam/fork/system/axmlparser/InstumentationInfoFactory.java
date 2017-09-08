@@ -10,7 +10,6 @@
 
 package com.shazam.fork.system.axmlparser;
 
-import com.shazam.axmlparser.AXMLParser;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
@@ -24,12 +23,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Parses key information from an instrumentation APK's manifest.
  */
-public class InstrumentationInfoFactory {
+public class InstumentationInfoFactory {
 
-    private InstrumentationInfoFactory() {
-    }
+    private InstumentationInfoFactory() {}
 
-    /**
+	/**
      * @param apkTestFile the instrumentation APK
      * @return the instrumentation info instance
      */

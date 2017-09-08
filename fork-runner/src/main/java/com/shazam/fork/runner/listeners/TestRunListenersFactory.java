@@ -20,6 +20,7 @@ import com.shazam.fork.runner.ProgressReporter;
 import com.shazam.fork.system.io.FileManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -46,16 +47,21 @@ public class TestRunListenersFactory {
                                                       Pool pool,
                                                       ProgressReporter progressReporter,
                                                       Queue<TestCaseEvent> testCaseEventQueue) {
-        return asList(
+        List<ITestRunListener> iTestRunListeners = new ArrayList<>(asList(
                 new ProgressTestRunListener(pool, progressReporter),
                 getForkXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter),
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
                         device.getModelName(), progressReporter),
                 new LogCatTestRunListener(gson, fileManager, pool, device),
-                new SlowWarningTestRunListener(),
+                new AppSessionsListener(device, fileManager, pool, testCase, configuration),
+//                new SlowWarningTestRunListener(),
                 getScreenTraceTestRunListener(fileManager, pool, device),
                 new RetryListener(pool, device, testCaseEventQueue, testCase, progressReporter, fileManager),
-                getCoverageTestRunListener(configuration, device, fileManager, pool, testCase));
+                getCoverageTestRunListener(configuration, device, fileManager, pool, testCase)));
+        if (configuration.getEnableLeakCanaryDump()) {
+            iTestRunListeners.add(new LeakCanaryMemoryDumpListener(device, fileManager, pool, testCase, configuration));
+        }
+        return iTestRunListeners;
     }
 
 
@@ -83,7 +89,7 @@ public class TestRunListenersFactory {
 
     private ITestRunListener getScreenTraceTestRunListener(FileManager fileManager, Pool pool, Device device) {
         if (VIDEO.equals(device.getSupportedDiagnostics())) {
-            return new ScreenRecorderTestRunListener(fileManager, pool, device);
+            return new ScreenRecorderAppTestRunListener(fileManager, pool, device, configuration);
         }
 
         if (SCREENSHOTS.equals(device.getSupportedDiagnostics()) && configuration.canFallbackToScreenshots()) {

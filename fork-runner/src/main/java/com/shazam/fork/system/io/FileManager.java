@@ -86,6 +86,14 @@ public class FileManager {
         return path.toFile();
     }
 
+    public Path createDirectory(String test, Pool pool, Device device, TestIdentifier testIdentifier) throws IOException {
+        return createDirectories(getDirectory(test, pool, device, testIdentifier));
+    }
+
+    private Path getDirectory(String type, Pool pool, Device device, TestIdentifier testIdentifier) {
+        return get(output.getAbsolutePath(), type, pool.getName(), device.getSafeSerial(), testIdentifier.toString());
+    }
+
     private Path createDirectory(FileType test, Pool pool, Device device) throws IOException {
         return createDirectories(getDirectory(test, pool, device));
     }

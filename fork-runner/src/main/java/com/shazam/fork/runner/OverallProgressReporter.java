@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static com.shazam.fork.utils.Utils.millisBetweenNanoTimes;
 import static com.shazam.fork.utils.Utils.millisSinceNanoTime;
@@ -35,9 +36,10 @@ public class OverallProgressReporter implements ProgressReporter {
 
     public OverallProgressReporter(int totalAllowedRetryQuota,
                                    int retryPerTestCaseQuota,
+                                   String failureRetryRegex,
                                    Map<Pool, PoolProgressTracker> poolProgressTrackers,
                                    PoolTestCaseAccumulator failedTestCasesAccumulator) {
-        this.retryWatchdog = new RetryWatchdog(totalAllowedRetryQuota, retryPerTestCaseQuota);
+        this.retryWatchdog = new RetryWatchdog(totalAllowedRetryQuota, retryPerTestCaseQuota, failureRetryRegex);
         this.poolProgressTrackers = poolProgressTrackers;
         this.failedTestCasesAccumulator = failedTestCasesAccumulator;
     }
@@ -91,8 +93,8 @@ public class OverallProgressReporter implements ProgressReporter {
         return progress / size;
     }
 
-    public boolean requestRetry(Pool pool, TestCaseEvent testCase) {
-        boolean result = retryWatchdog.requestRetry(failedTestCasesAccumulator.getCount(testCase));
+    public boolean requestRetry(Pool pool, FailedTestCaseEvent testCase) {
+        boolean result = retryWatchdog.requestRetry(failedTestCasesAccumulator.getCount(testCase), testCase.getFailureTrace());
         if (result && poolProgressTrackers.containsKey(pool)) {
             poolProgressTrackers.get(pool).trackTestEnqueuedAgain();
         }
@@ -114,13 +116,18 @@ public class OverallProgressReporter implements ProgressReporter {
         private final int maxRetryPerTestCaseQuota;
         private final AtomicInteger totalAllowedRetryLeft;
         private final StringBuilder logBuilder = new StringBuilder();
+        private Pattern failureRetryRegexPattern = null;
 
-        public RetryWatchdog(int totalAllowedRetryQuota, int retryPerTestCaseQuota) {
+        public RetryWatchdog(int totalAllowedRetryQuota, int retryPerTestCaseQuota, String failureRetryRegex) {
             totalAllowedRetryLeft = new AtomicInteger(totalAllowedRetryQuota);
             maxRetryPerTestCaseQuota = retryPerTestCaseQuota;
+            failureRetryRegexPattern = failureRetryRegex != null ? Pattern.compile(failureRetryRegex) : null;
         }
 
-        public boolean requestRetry(int currentSingleTestCaseFailures) {
+        public boolean requestRetry(int currentSingleTestCaseFailures, String failureTrace) {
+            if (failureRetryRegexPattern != null && !failureRetryRegexPattern.matcher(failureTrace).find()) {
+                return false;
+            }
             boolean totalAllowedRetryAvailable = totalAllowedRetryAvailable();
             boolean singleTestAllowed = currentSingleTestCaseFailures <= maxRetryPerTestCaseQuota;
             boolean result = totalAllowedRetryAvailable && singleTestAllowed;

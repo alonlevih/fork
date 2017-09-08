@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.shazam.fork.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
+import static com.shazam.fork.system.axmlparser.InstumentationInfoFactory.parseFromFile;
 
 public class Configuration {
 

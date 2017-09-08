@@ -1,8 +1,6 @@
 package com.shazam.fork.runner;
 
-import com.shazam.fork.model.Device;
-import com.shazam.fork.model.Pool;
-import com.shazam.fork.model.TestCaseEvent;
+import com.shazam.fork.model.*;
 
 import org.jmock.Expectations;
 import org.jmock.auto.Mock;
@@ -15,7 +13,6 @@ import static com.shazam.fork.model.Pool.Builder.aDevicePool;
 import static com.shazam.fork.model.TestCaseEvent.newTestCase;
 import static com.shazam.fork.runner.FakePoolTestCaseAccumulator.aFakePoolTestCaseAccumulator;
 import static com.shazam.fork.runner.FakeProgressReporterTrackers.aFakeProgressReporterTrackers;
-import static java.util.Collections.emptyList;
 
 public class OverallProgressReporterTest {
 
@@ -27,7 +24,7 @@ public class OverallProgressReporterTest {
     private final Pool A_POOL = aDevicePool()
             .addDevice(A_DEVICE)
             .build();
-    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", false, emptyList());
+    private final TestCaseEvent A_TEST_CASE = newTestCase("aTestMethod", "aTestClass", annotations, false);
 
     private OverallProgressReporter overallProgressReporter;
 

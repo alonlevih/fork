@@ -64,7 +64,12 @@ public class ChimpRunner {
         try {
             prepareOutputDirectory();
             DdmPreferences.setTimeOut(Defaults.DDMS_TIMEOUT);
-            Device device = deviceLoader.loadDevice(serial);
+            Device device;
+            if (serial == null) {
+                device = deviceLoader.loadAnyDevice();
+            } else {
+                device = deviceLoader.loadDevice(serial);
+            }
             Collection<TestCaseEvent> testCaseEvents = testSuiteLoader.loadTestSuite();
             PerformanceTestRunner performanceTestRunner = new PerformanceTestRunner(
                     installer(),

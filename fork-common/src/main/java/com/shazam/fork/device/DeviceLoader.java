@@ -62,6 +62,17 @@ public class DeviceLoader {
         throw new DeviceCouldNotBeFoundException("Could not load device with serial: " + serial);
     }
 
+    public Device loadAnyDevice() throws DeviceCouldNotBeFoundException {
+        Optional<IDevice> deviceOptional = loadAllDevices()
+                .stream()
+                .findFirst();
+
+        if (deviceOptional.isPresent()) {
+            return loadDeviceCharacteristics(deviceOptional.get());
+        }
+        throw new DeviceCouldNotBeFoundException("Could not load device: no device found");
+    }
+
     /**
      * Retrieve all connected devices which survive the FORK_EXCLUDED_SERIAL filter.
      *

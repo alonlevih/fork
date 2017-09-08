@@ -10,6 +10,7 @@
 
 package com.shazam.fork.runner;
 
+import com.shazam.fork.model.FailedTestCaseEvent;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 
@@ -34,7 +35,7 @@ public interface ProgressReporter {
 
     float getProgress();
 
-    boolean requestRetry(Pool pool, TestCaseEvent testCaseEvent);
+    boolean requestRetry(Pool pool, FailedTestCaseEvent testCaseEvent);
 
     void recordFailedTestCase(Pool pool, TestCaseEvent testCase);
 

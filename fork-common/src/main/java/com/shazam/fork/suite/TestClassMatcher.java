@@ -10,7 +10,9 @@
 
 package com.shazam.fork.suite;
 
+import org.jf.dexlib.ClassDefItem;
+
 public interface TestClassMatcher {
 
-    boolean matchesPatterns(String typeDescriptor);
+    boolean matchesPatterns(ClassDefItem typeDescriptor);
 }

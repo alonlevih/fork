@@ -13,7 +13,7 @@ package com.shazam.chimprunner;
 public class Defaults {
     public static final String CHIMP_OUTPUT = "chimp-output";
     static final int DDMS_TIMEOUT = 30000;
-    static final int ADB_MAX_TIME_TO_OUTPUT_RESPONSE = 30000;
+    static final int ADB_MAX_TIME_TO_OUTPUT_RESPONSE = 600000;
     static final int ITERATIONS = 7;
     static final int ITERATIONS_TO_SKIP = 2;
 }

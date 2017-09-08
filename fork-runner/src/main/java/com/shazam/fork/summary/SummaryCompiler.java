@@ -99,9 +99,15 @@ public class SummaryCompiler {
         for (TestResult testResult : testResults) {
             int totalFailureCount = testResult.getTotalFailureCount();
             if (totalFailureCount > 0) {
-                String failedTest = totalFailureCount + " times " + testResult.getTestClass()
-                        + "#" + testResult.getTestMethod() + " on " + testResult.getDevice().getSerial() ;
-                summaryBuilder.addFailedTests(failedTest);
+                if (totalFailureCount > configuration.getRetryPerTestCaseQuota()) {
+                    String failedTest = totalFailureCount + " times " + testResult.getTestClass()
+                            + "#" + testResult.getTestMethod() + " on " + testResult.getDevice().getSerial();
+                    summaryBuilder.addFailedTests(failedTest);
+                } else {
+                    String flakyTest = totalFailureCount + " times " + testResult.getTestClass()
+                            + "#" + testResult.getTestMethod() + " on " + testResult.getDevice().getSerial();
+                    summaryBuilder.addFlakyTests(flakyTest);
+                }
             }
         }
     }

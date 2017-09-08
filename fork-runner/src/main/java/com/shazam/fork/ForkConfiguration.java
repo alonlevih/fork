@@ -99,6 +99,14 @@ public class ForkConfiguration {
      */
     public String excludedAnnotation;
 
+    public String failureRetryRegex;
+
+    public String testClassAnnotation;
+
+    public String denyPermissionsAnnotation;
+
+    public boolean enableLeakCanaryDump;
+
     public void poolingStrategy(Closure<?> poolingStrategyClosure) {
         poolingStrategy = new PoolingStrategy();
         poolingStrategyClosure.setDelegate(poolingStrategy);

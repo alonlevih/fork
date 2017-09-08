@@ -14,12 +14,12 @@ import com.android.ddmlib.testrunner.ITestRunListener;
 import com.shazam.fork.Configuration;
 import com.shazam.fork.model.*;
 import com.shazam.fork.runner.listeners.TestRunListenersFactory;
+import com.shazam.fork.system.adb.Installer;
 
 import java.util.List;
 import java.util.Queue;
 
 import static com.shazam.fork.runner.TestRunParameters.Builder.testRunParameters;
-import static com.shazam.fork.system.PermissionGrantingManager.permissionGrantingManager;
 
 public class TestRunFactory {
 
@@ -32,20 +32,23 @@ public class TestRunFactory {
     }
 
     public TestRun createTestRun(TestCaseEvent testCase,
+                                 Installer installer,
                                  Device device,
                                  Pool pool,
                                  ProgressReporter progressReporter,
                                  Queue<TestCaseEvent> queueOfTestsInPool) {
         TestRunParameters testRunParameters = testRunParameters()
                 .withDeviceInterface(device.getDeviceInterface())
+                .withInstaller(installer)
                 .withTest(testCase)
                 .withTestPackage(configuration.getInstrumentationPackage())
-                .withApplicationPackage(configuration.getApplicationPackage())
                 .withTestRunner(configuration.getTestRunnerClass())
                 .withTestSize(configuration.getTestSize())
                 .withTestOutputTimeout((int) configuration.getTestOutputTimeout())
                 .withCoverageEnabled(configuration.isCoverageEnabled())
                 .withExcludedAnnotation(configuration.getExcludedAnnotation())
+                .withAutoGrantPermissions(configuration.isAutoGrantingPermissions())
+                .withDenyPermissionsAnnotation(configuration.getDenyPermissionsAnnotation())
                 .build();
 
         List<ITestRunListener> testRunListeners = testRunListenersFactory.createTestListeners(
@@ -58,7 +61,6 @@ public class TestRunFactory {
         return new TestRun(
                 pool.getName(),
                 testRunParameters,
-                testRunListeners,
-                permissionGrantingManager());
+                testRunListeners);
     }
 }

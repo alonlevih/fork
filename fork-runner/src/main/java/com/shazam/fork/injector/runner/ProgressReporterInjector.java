@@ -25,6 +25,7 @@ public class ProgressReporterInjector {
         return new OverallProgressReporter(
                 configuration().getTotalAllowedRetryQuota(),
                 configuration().getRetryPerTestCaseQuota(),
+                configuration().getFailureRetryRegex(),
                 poolProgressTrackers(),
                 poolTestCaseFailureAccumulator());
     }

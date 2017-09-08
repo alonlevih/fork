@@ -13,8 +13,6 @@
 package com.shazam.fork;
 
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
-import com.shazam.fork.system.axmlparser.ApplicationInfo;
-import com.shazam.fork.system.axmlparser.ApplicationInfoFactory;
 import com.shazam.fork.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
@@ -30,7 +28,7 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.shazam.fork.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
+import static com.shazam.fork.system.axmlparser.InstumentationInfoFactory.parseFromFile;
 import static java.util.Arrays.asList;
 
 public class Configuration {
@@ -57,8 +55,10 @@ public class Configuration {
     private final PoolingStrategy poolingStrategy;
     private final boolean autoGrantPermissions;
     private final String excludedAnnotation;
-
-    private ApplicationInfo applicationInfo;
+    private final String failureRetryRegex;
+    private final String testClassAnnotation;
+    private final String denyPermissionsAnnotation;
+    private final boolean enableLeakCanaryDump;
 
     private Configuration(Builder builder) {
         androidSdk = builder.androidSdk;
@@ -82,7 +82,10 @@ public class Configuration {
         poolingStrategy = builder.poolingStrategy;
         autoGrantPermissions = builder.autoGrantPermissions;
         this.excludedAnnotation = builder.excludedAnnotation;
-        this.applicationInfo = builder.applicationInfo;
+        this.failureRetryRegex = builder.failureRetryRegex;
+        this.testClassAnnotation = builder.testClassAnnotation;
+        this.denyPermissionsAnnotation = builder.denyPermissionsAnnotation;
+        this.enableLeakCanaryDump = builder.enableLeakCanaryDump;
     }
 
     @Nonnull
@@ -182,8 +185,20 @@ public class Configuration {
         return excludedAnnotation;
     }
 
-    public ApplicationInfo getApplicationInfo() {
-        return applicationInfo;
+    public String getFailureRetryRegex() {
+        return failureRetryRegex;
+    }
+
+    public String getTestClassAnnotation() {
+        return testClassAnnotation;
+    }
+
+    public String getDenyPermissionsAnnotation() {
+        return denyPermissionsAnnotation;
+    }
+
+    public boolean getEnableLeakCanaryDump() {
+        return enableLeakCanaryDump;
     }
 
     public static class Builder {
@@ -208,7 +223,10 @@ public class Configuration {
         private PoolingStrategy poolingStrategy;
         private boolean autoGrantPermissions;
         private String excludedAnnotation;
-        private ApplicationInfo applicationInfo;
+        private String failureRetryRegex;
+        private String testClassAnnotation;
+        private String denyPermissionsAnnotation;
+        public boolean enableLeakCanaryDump;
 
         public static Builder configuration() {
             return new Builder();
@@ -216,6 +234,11 @@ public class Configuration {
 
         public Builder withAndroidSdk(@Nonnull File androidSdk) {
             this.androidSdk = androidSdk;
+            return this;
+        }
+
+        public Builder withEnableLeakCanaryDump(@Nonnull boolean enableLeakCanaryDump) {
+            this.enableLeakCanaryDump = enableLeakCanaryDump;
             return this;
         }
 
@@ -299,6 +322,21 @@ public class Configuration {
             return this;
         }
 
+        public Builder withFailureRetryRegex(String failureRetryRegex) {
+            this.failureRetryRegex = failureRetryRegex;
+            return this;
+        }
+
+        public Builder withTestClassAnnotation(String testClassAnnotation) {
+            this.testClassAnnotation = testClassAnnotation;
+            return this;
+        }
+
+        public Builder withDenyPermissionsAnnotation(String denyPermissionsAnnotation) {
+            this.denyPermissionsAnnotation = denyPermissionsAnnotation;
+            return this;
+        }
+
         public Builder withExcludedAnnotation(String excludedAnnotation) {
             this.excludedAnnotation = excludedAnnotation;
             return this;
@@ -323,7 +361,7 @@ public class Configuration {
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
             testClassRegex = assignValueOrDefaultIfNull(testClassRegex, CommonDefaults.TEST_CLASS_REGEX);
-            testPackage = assignValueOrDefaultIfNull(testPackage, instrumentationInfo.getApplicationPackage());
+            testPackage = assignValueOrDefaultIfNull(testPackage, instrumentationInfo.getInstrumentationPackage());
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
             excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());
             checkArgument(totalAllowedRetryQuota >= 0, "Total allowed retry quota should not be negative.");
@@ -331,7 +369,6 @@ public class Configuration {
             retryPerTestCaseQuota = assignValueOrDefaultIfZero(retryPerTestCaseQuota, Defaults.RETRY_QUOTA_PER_TEST_CASE);
             logArgumentsBadInteractions();
             poolingStrategy = validatePoolingStrategy(poolingStrategy);
-            applicationInfo = ApplicationInfoFactory.parseFromFile(applicationApk);
             return new Configuration(this);
         }
 

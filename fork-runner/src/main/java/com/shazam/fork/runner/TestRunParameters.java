@@ -15,6 +15,7 @@ package com.shazam.fork.runner;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
 import com.shazam.fork.model.TestCaseEvent;
+import com.shazam.fork.system.adb.Installer;
 
 import javax.annotation.Nullable;
 
@@ -27,7 +28,9 @@ public class TestRunParameters {
 	private final int testOutputTimeout;
 	private final IDevice deviceInterface;
 	private final String excludedAnnotation;
-	private final String applicationPackage;
+	private final Installer installer;
+	private boolean autoGrantingPermissions;
+	private String denyPermissionsAnnotation;
 
 	public TestCaseEvent getTest() {
 		return test;
@@ -62,8 +65,16 @@ public class TestRunParameters {
 		return excludedAnnotation;
 	}
 
-	public String getApplicationPackage() {
-		return applicationPackage;
+	public Installer getInstaller() {
+		return installer;
+	}
+
+	public boolean isAutoGrantingPermissions() {
+		return autoGrantingPermissions;
+	}
+
+	public String getDenyPermissionsAnnotation() {
+		return denyPermissionsAnnotation;
 	}
 
 	public static class Builder {
@@ -75,7 +86,9 @@ public class TestRunParameters {
 		private IDevice deviceInterface;
 		private int testOutputTimeout;
 		private String excludedAnnotation;
-		private String applicationPackage;
+		private Installer installer;
+		private boolean autoGrantPermissions;
+		private String denyPermissionsAnnotation;
 
 		public static Builder testRunParameters() {
 			return new Builder();
@@ -121,13 +134,23 @@ public class TestRunParameters {
 			return this;
 		}
 
-		public Builder withApplicationPackage(String applicationPackage) {
-			this.applicationPackage = applicationPackage;
+		public TestRunParameters build() {
+			return new TestRunParameters(this);
+		}
+
+		public Builder withInstaller(Installer installer) {
+			this.installer = installer;
 			return this;
 		}
 
-		public TestRunParameters build() {
-			return new TestRunParameters(this);
+		public Builder withAutoGrantPermissions(boolean autoGrantingPermissions) {
+			this.autoGrantPermissions = autoGrantingPermissions;
+			return this;
+		}
+
+		public Builder withDenyPermissionsAnnotation(String denyPermissionsAnnotation) {
+			this.denyPermissionsAnnotation = denyPermissionsAnnotation;
+			return this;
 		}
 	}
 
@@ -140,6 +163,8 @@ public class TestRunParameters {
 		deviceInterface = builder.deviceInterface;
 		isCoverageEnabled = builder.isCoverageEnabled;
 		this.excludedAnnotation = builder.excludedAnnotation;
-		this.applicationPackage = builder.applicationPackage;
+		this.denyPermissionsAnnotation = builder.denyPermissionsAnnotation;
+		this.autoGrantingPermissions = builder.autoGrantPermissions;
+		this.installer = builder.installer;
 	}
 }

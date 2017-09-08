@@ -60,6 +60,7 @@ public class ForkCli {
     }
 
     public static void main(String... args) {
+        args = "--sdk /Users/alonlevi/Library/Android/sdk --apk /Users/alonlevi/Workspace/c2android/buck-out/gen/app/bin_devBuck.apk --test-apk /Users/alonlevi/Workspace/c2android/buck-out/gen/app/instrumentation_devDebug_apk.apk --config /Users/alonlevi/Workspace/c2android/fork.json".split(" ");
         CommandLineArgs parsedArgs = new CommandLineArgs();
         JCommander jc = new JCommander(parsedArgs);
 
@@ -100,6 +101,10 @@ public class ForkCli {
                     .withPoolingStrategy(forkConfiguration.poolingStrategy)
                     .withAutoGrantPermissions(forkConfiguration.autoGrantPermissions)
                     .withExcludedAnnotation(forkConfiguration.excludedAnnotation)
+                    .withDenyPermissionsAnnotation(forkConfiguration.denyPermissionsAnnotation)
+                    .withFailureRetryRegex(forkConfiguration.failureRetryRegex)
+                    .withTestClassAnnotation(forkConfiguration.testClassAnnotation)
+                    .withEnableLeakCanaryDump(forkConfiguration.enableLeakCanaryDump)
                     .build();
 
             Fork fork = new Fork(configuration);

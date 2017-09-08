@@ -12,6 +12,7 @@ package com.shazam.fork.runner.listeners;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.shazam.fork.model.Device;
+import com.shazam.fork.model.FailedTestCaseEvent;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.runner.ProgressReporter;
@@ -44,6 +45,7 @@ public class RetryListener extends NoOpITestRunListener {
     private ProgressReporter progressReporter;
     private FileManager fileManager;
     private Pool pool;
+    private String failedTrace;
 
     public RetryListener(@Nonnull Pool pool, @Nonnull Device device,
                          @Nonnull Queue<TestCaseEvent> queueOfTestsInPool,
@@ -62,18 +64,19 @@ public class RetryListener extends NoOpITestRunListener {
         this.pool = pool;
         this.fileManager = fileManager;
     }
-
+    
     @Override
     public void testFailed(TestIdentifier test, String trace) {
         failedTest = test;
-        progressReporter.recordFailedTestCase(pool, newTestCase(failedTest));
+        failedTrace = trace;
+        progressReporter.recordFailedTestCase(pool, newTestCase(failedTest, currentTestCaseEvent.getAnnotations(), false));
     }
 
     @Override
     public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
         super.testRunEnded(elapsedTime, runMetrics);
         if (failedTest != null) {
-            if (progressReporter.requestRetry(pool, newTestCase(failedTest))) {
+            if (failedTrace != null && progressReporter.requestRetry(pool, FailedTestCaseEvent.newTestCase(failedTest, currentTestCaseEvent.getAnnotations(), false, failedTrace))) {
                 queueOfTestsInPool.add(currentTestCaseEvent);
                 logger.info("Test " + failedTest.toString() + " enqueued again into pool:" + pool.getName());
                 removeFailureTraceFiles();
@@ -83,10 +86,10 @@ public class RetryListener extends NoOpITestRunListener {
         }
     }
 
-    public void removeFailureTraceFiles() {
+    public void removeFailureTraceFiles( ) {
         final File file = fileManager.getFile(FileType.TEST, pool.getName(), device.getSafeSerial(), failedTest);
         boolean deleted = file.delete();
-        if (!deleted) {
+        if(!deleted){
             logger.warn("Failed to remove file  " + file.getAbsoluteFile() + " for a failed but enqueued again test");
         }
     }

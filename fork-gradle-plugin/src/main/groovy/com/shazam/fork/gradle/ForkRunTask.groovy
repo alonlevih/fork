@@ -77,6 +77,14 @@ class ForkRunTask extends DefaultTask implements VerificationTask {
 
     String excludedAnnotation
 
+    String failureRetryRegex
+
+    String testClassAnnotation
+
+    String denyPermissionsAnnotation
+
+    boolean enableLeakCanaryDump
+
     @TaskAction
     void runFork() {
         LOG.info("Run instrumentation tests $instrumentationApk for app $applicationApk")
@@ -102,6 +110,10 @@ class ForkRunTask extends DefaultTask implements VerificationTask {
                 .withPoolingStrategy(poolingStrategy)
                 .withAutoGrantPermissions(autoGrantPermissions)
                 .withExcludedAnnotation(excludedAnnotation)
+                .withFailureRetryRegex(failureRetryRegex)
+                .withTestClassAnnotation(testClassAnnotation)
+                .withDenyPermissionsAnnotation(denyPermissionsAnnotation)
+                .withEnableLeakCanaryDump(enableLeakCanaryDump)
                 .build();
 
         boolean success = new Fork(configuration).run()

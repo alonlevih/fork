@@ -24,6 +24,7 @@ public class Summary {
     private final String subtitle;
     private final ArrayList<String> ignoredTests;
     private final ArrayList<String> failedTests;
+    private final ArrayList<String> flakyTests;
 
     @Nonnull
     public List<PoolSummary> getPoolSummaries() {
@@ -47,12 +48,17 @@ public class Summary {
         return failedTests;
     }
 
+    public ArrayList<String> getFlakyTests() {
+        return flakyTests;
+    }
+
     public static class Builder {
         private final List<PoolSummary> poolSummaries = new ArrayList<>();
         private final ArrayList<String> ignoredTests = new ArrayList<>();
         private String title = "Report Title";
         private String subtitle = "Report Subtitle";
         private ArrayList<String> failedTests =  new ArrayList<>();
+        private ArrayList<String> flakyTests =  new ArrayList<>();
 
         public static Builder aSummary() {
             return new Builder();
@@ -83,6 +89,11 @@ public class Summary {
             return this;
         }
 
+        public Builder addFlakyTests(String flakyTests) {
+            this.flakyTests.add(flakyTests);
+            return this;
+        }
+
         public Summary build() {
             return new Summary(this);
         }
@@ -94,5 +105,6 @@ public class Summary {
         subtitle = builder.subtitle;
         ignoredTests = builder.ignoredTests;
         failedTests = builder.failedTests;
+        flakyTests = builder.flakyTests;
     }
 }

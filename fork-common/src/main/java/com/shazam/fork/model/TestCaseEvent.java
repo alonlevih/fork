@@ -2,12 +2,12 @@ package com.shazam.fork.model;
 
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.base.Objects;
-
-import java.util.List;
+import org.jf.dexlib.AnnotationItem;
 
 import javax.annotation.Nonnull;
 
-import static java.util.Collections.emptyList;
+import java.util.Arrays;
+
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 import static org.apache.commons.lang3.builder.ToStringStyle.SIMPLE_STYLE;
 
@@ -15,22 +15,37 @@ public class TestCaseEvent {
 
     private final String testMethod;
     private final String testClass;
+    private final String[] annotations;
     private final boolean isIgnored;
-    private final List<String> permissionsToRevoke;
 
-    private TestCaseEvent(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToRevoke) {
+    protected TestCaseEvent(String testMethod, String testClass, AnnotationItem[] annotations, boolean isIgnored) {
         this.testMethod = testMethod;
         this.testClass = testClass;
         this.isIgnored = isIgnored;
-        this.permissionsToRevoke = permissionsToRevoke;
+        this.annotations =  Arrays.stream(annotations).map(annotation ->  annotation.getEncodedAnnotation().annotationType.getTypeDescriptor()).toArray(String[]::new);
     }
 
-    public static TestCaseEvent newTestCase(String testMethod, String testClass, boolean isIgnored, List<String> permissionsToRevoke) {
-        return new TestCaseEvent(testMethod, testClass, isIgnored, permissionsToRevoke);
+    public TestCaseEvent(String testMethod, String testClass, String[] annotations, boolean isIgnored) {
+        this.testMethod = testMethod;
+        this.testClass = testClass;
+        this.isIgnored = isIgnored;
+        this.annotations =  annotations;
     }
 
-    public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier ) {
-        return new TestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), false, emptyList());
+    public static TestCaseEvent newTestCase(String testMethod, String testClass, AnnotationItem[] annotations, boolean isIgnored) {
+        return new TestCaseEvent(testMethod, testClass, annotations, isIgnored);
+    }
+
+    public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier, boolean isIgnored) {
+        return newTestCase(testIdentifier, new AnnotationItem[0], isIgnored);
+    }
+
+    public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier, AnnotationItem[] annotations, boolean isIgnored) {
+        return new TestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), annotations, isIgnored);
+    }
+
+    public static TestCaseEvent newTestCase(@Nonnull TestIdentifier testIdentifier, String[] annotations, boolean isIgnored) {
+        return new TestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), annotations, isIgnored);
     }
 
     public String getTestMethod() {
@@ -45,10 +60,6 @@ public class TestCaseEvent {
         return isIgnored;
     }
 
-    public List<String> getPermissionsToRevoke() {
-        return permissionsToRevoke;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hashCode(this.testMethod, this.testClass);
@@ -59,7 +70,7 @@ public class TestCaseEvent {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof TestCaseEvent)) {
             return false;
         }
         final TestCaseEvent other = (TestCaseEvent) obj;
@@ -70,5 +81,9 @@ public class TestCaseEvent {
     @Override
     public String toString() {
         return reflectionToString(this, SIMPLE_STYLE);
+    }
+
+    public String[] getAnnotations() {
+        return annotations;
     }
 }

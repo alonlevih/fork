@@ -52,6 +52,16 @@
             {{/ignoredTests}}
         </ul>
 
+        Flaky tests:
+        <ul>
+            {{#flakyTests}}
+            <li>{{.}}</li>
+            {{/flakyTests}}
+            {{^flakyTests}}
+            <li>None.</li>
+            {{/flakyTests}}
+        </ul>
+
         Failed tests:
         <ul>
             {{#failedTests}}
