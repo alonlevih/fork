@@ -90,6 +90,7 @@ public class ForkCli {
                     .withTitle(forkConfiguration.title)
                     .withSubtitle(forkConfiguration.subtitle)
                     .withTestClassRegex(forkConfiguration.testClassRegex)
+                    .withTestMethodRegex(forkConfiguration.testMethodRegex)
                     .withTestPackage(forkConfiguration.testPackage)
                     .withTestOutputTimeout(forkConfiguration.testOutputTimeout)
                     .withTestSize(forkConfiguration.testSize)

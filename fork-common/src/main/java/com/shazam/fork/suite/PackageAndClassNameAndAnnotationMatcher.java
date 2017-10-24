@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 public class PackageAndClassNameAndAnnotationMatcher extends PackageAndClassNameMatcher {
 
     private String testClassAnnotation;
+    
     public PackageAndClassNameAndAnnotationMatcher(Pattern packagePattern, Pattern classPattern, String testClassAnnotation) {
         super(packagePattern, classPattern);
         this.testClassAnnotation = testClassAnnotation;

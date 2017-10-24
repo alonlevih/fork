@@ -4,15 +4,16 @@ import com.android.ddmlib.*;
 import com.android.ddmlib.FileListingService.FileEntry;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.shazam.fork.Configuration;
 import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.system.adb.CollectingShellOutputReceiver;
 import com.shazam.fork.system.io.FileManager;
+import com.shazam.fork.system.io.RemoteFileManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,60 +22,30 @@ import java.util.Map;
 
 import static com.android.ddmlib.FileListingService.TYPE_DIRECTORY;
 import static com.android.ddmlib.SyncService.getNullProgressMonitor;
+import static com.shazam.fork.system.io.FileType.COVERAGE;
+import static com.shazam.fork.system.io.FileType.SCREENRECORDAPP;
 
-public class LeakCanaryMemoryDumpListener implements ITestRunListener {
+public class HouzzSessionsListener implements ITestRunListener {
 
     private final Device device;
     private final FileManager fileManager;
     private final Pool pool;
-    private final Logger logger = LoggerFactory.getLogger(LeakCanaryMemoryDumpListener.class);
+    private final Logger logger = LoggerFactory.getLogger(HouzzSessionsListener.class);
     private final TestCaseEvent testCase;
-    private Configuration configuration;
 
-    public LeakCanaryMemoryDumpListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase, Configuration configuration) {
+    public HouzzSessionsListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase) {
         this.device = device;
         this.fileManager = fileManager;
         this.pool = pool;
         this.testCase = testCase;
-        this.configuration = configuration;
     }
 
     @Override
     public void testRunStarted(String runName, int testCount) {
-
     }
 
     @Override
     public void testStarted(TestIdentifier test) {
-
-        try {
-            device.getDeviceInterface().root();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            device.getDeviceInterface().executeShellCommand("am start -n \"" + configuration.getApplicationPackage() + "/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://" + configuration.getApplicationPackage() +"/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=true\"", receiver);
-            Thread.sleep(5000);
-            device.getDeviceInterface().executeShellCommand("am force-stop " + configuration.getApplicationPackage(), receiver);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -92,9 +63,28 @@ public class LeakCanaryMemoryDumpListener implements ITestRunListener {
     @Override
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
         try {
+            device.getDeviceInterface().root();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        } catch (AdbCommandRejectedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ShellCommandUnresponsiveException e) {
+            e.printStackTrace();
+        }
+
+        TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
+        try {
+            Path localSessionsFolder = fileManager.createDirectory("data", pool, device, testIdentifier);
+            adbPull(device.getDeviceInterface(), obtainDirectoryFileEntry("/data/data/com.houzz.app/files/sessions/"), localSessionsFolder.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            device.getDeviceInterface().executeShellCommand("am start -n \"" + configuration.getApplicationPackage() + "/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://" + configuration.getApplicationPackage() + "/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=false\"", receiver);
-            Thread.sleep(5000);
+            device.getDeviceInterface().executeShellCommand("rm -fr /data/data/com.houzz.app/files/sessions", receiver);
         } catch (TimeoutException e) {
             e.printStackTrace();
         } catch (AdbCommandRejectedException e) {
@@ -103,33 +93,9 @@ public class LeakCanaryMemoryDumpListener implements ITestRunListener {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
-        try {
-            Path localLeakCanaryFolder = fileManager.createDirectory("leakcanary", pool, device, testIdentifier);
-            adbPull(device.getDeviceInterface(), getDirectoryOnExternalStorage(device.getDeviceInterface(), "Download/leakcanary-" + configuration.getApplicationPackage()), localLeakCanaryFolder.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
-
-    private FileEntry getDirectoryOnExternalStorage(IDevice device, final String dir)
-            throws Exception {
-        String externalPath = getExternalStoragePath(device, dir);
-        return obtainDirectoryFileEntry(externalPath);
-    }
-
-    private String getExternalStoragePath(IDevice device, final String path) throws Exception {
-        CollectingOutputReceiver pathNameOutputReceiver = new CollectingOutputReceiver();
-        device.executeShellCommand("echo $EXTERNAL_STORAGE", pathNameOutputReceiver);
-        return pathNameOutputReceiver.getOutput().trim() + "/" + path;
-    }
 
     /** Get a {@link FileEntry} for an arbitrary path. */
     static FileEntry obtainDirectoryFileEntry(String path) {

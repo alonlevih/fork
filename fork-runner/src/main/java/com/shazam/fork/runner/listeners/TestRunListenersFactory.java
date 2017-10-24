@@ -17,6 +17,7 @@ import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.runner.ProgressReporter;
+import com.shazam.fork.system.adb.Installer;
 import com.shazam.fork.system.io.FileManager;
 
 import java.io.File;
@@ -53,13 +54,13 @@ public class TestRunListenersFactory {
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
                         device.getModelName(), progressReporter),
                 new LogCatTestRunListener(gson, fileManager, pool, device),
-                new AppSessionsListener(device, fileManager, pool, testCase, configuration),
+                new HouzzSessionsListener(device, fileManager, pool, testCase),
 //                new SlowWarningTestRunListener(),
                 getScreenTraceTestRunListener(fileManager, pool, device),
                 new RetryListener(pool, device, testCaseEventQueue, testCase, progressReporter, fileManager),
                 getCoverageTestRunListener(configuration, device, fileManager, pool, testCase)));
         if (configuration.getEnableLeakCanaryDump()) {
-            iTestRunListeners.add(new LeakCanaryMemoryDumpListener(device, fileManager, pool, testCase, configuration));
+            iTestRunListeners.add(new HouzzLeakCanaryMemoryDumpListener(device, fileManager, pool, testCase));
         }
         return iTestRunListeners;
     }
@@ -89,7 +90,7 @@ public class TestRunListenersFactory {
 
     private ITestRunListener getScreenTraceTestRunListener(FileManager fileManager, Pool pool, Device device) {
         if (VIDEO.equals(device.getSupportedDiagnostics())) {
-            return new ScreenRecorderAppTestRunListener(fileManager, pool, device, configuration);
+            return new ScreenRecorderAppTestRunListener(fileManager, pool, device);
         }
 
         if (SCREENSHOTS.equals(device.getSupportedDiagnostics()) && configuration.canFallbackToScreenshots()) {

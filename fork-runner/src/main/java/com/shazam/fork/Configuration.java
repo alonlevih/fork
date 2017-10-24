@@ -44,6 +44,7 @@ public class Configuration {
     private final String title;
     private final String subtitle;
     private final Pattern testClassPattern;
+    private final Pattern testMethodPattern;
     private final String testPackage;
     private final long testOutputTimeout;
     private final IRemoteAndroidTestRunner.TestSize testSize;
@@ -71,6 +72,7 @@ public class Configuration {
         title = builder.title;
         subtitle = builder.subtitle;
         testClassPattern = Pattern.compile(builder.testClassRegex);
+        testMethodPattern = Pattern.compile(builder.testMethodRegex);
         testPackage = builder.testPackage;
         testOutputTimeout = builder.testOutputTimeout;
         testSize = builder.testSize;
@@ -136,6 +138,11 @@ public class Configuration {
     @Nonnull
     public Pattern getTestClassPattern() {
         return testClassPattern;
+    }
+
+    @Nonnull
+    public Pattern getTestMethodPattern() {
+        return testMethodPattern;
     }
 
     @Nonnull
@@ -212,6 +219,7 @@ public class Configuration {
         private String title;
         private String subtitle;
         private String testClassRegex;
+        private String testMethodRegex;
         private String testPackage;
         private long testOutputTimeout;
         private IRemoteAndroidTestRunner.TestSize testSize;
@@ -269,6 +277,11 @@ public class Configuration {
 
         public Builder withTestClassRegex(String testClassRegex) {
             this.testClassRegex = testClassRegex;
+            return this;
+        }
+
+        public Builder withTestMethodRegex(String testMethodRegex) {
+            this.testMethodRegex = testMethodRegex;
             return this;
         }
 
@@ -361,6 +374,7 @@ public class Configuration {
             title = assignValueOrDefaultIfNull(title, Defaults.TITLE);
             subtitle = assignValueOrDefaultIfNull(subtitle, Defaults.SUBTITLE);
             testClassRegex = assignValueOrDefaultIfNull(testClassRegex, CommonDefaults.TEST_CLASS_REGEX);
+            testMethodRegex = assignValueOrDefaultIfNull(testMethodRegex, CommonDefaults.TEST_METHOD_REGEX);
             testPackage = assignValueOrDefaultIfNull(testPackage, instrumentationInfo.getInstrumentationPackage());
             testOutputTimeout = assignValueOrDefaultIfZero(testOutputTimeout, Defaults.TEST_OUTPUT_TIMEOUT_MILLIS);
             excludedSerials = assignValueOrDefaultIfNull(excludedSerials, Collections.<String>emptyList());

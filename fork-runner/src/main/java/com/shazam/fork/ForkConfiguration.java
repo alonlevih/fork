@@ -39,6 +39,11 @@ public class ForkConfiguration {
     public String testClassRegex;
 
     /**
+     * Regex determining the method names to consider when finding tests to run.
+     */
+    public String testMethodRegex;
+
+    /**
      * The title of the final report
      */
     public String title;

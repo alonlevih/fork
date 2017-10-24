@@ -4,7 +4,6 @@ import com.android.ddmlib.*;
 import com.android.ddmlib.FileListingService.FileEntry;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.shazam.fork.Configuration;
 import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
@@ -22,29 +21,57 @@ import java.util.Map;
 import static com.android.ddmlib.FileListingService.TYPE_DIRECTORY;
 import static com.android.ddmlib.SyncService.getNullProgressMonitor;
 
-public class AppSessionsListener implements ITestRunListener {
+public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
 
     private final Device device;
     private final FileManager fileManager;
     private final Pool pool;
-    private final Logger logger = LoggerFactory.getLogger(AppSessionsListener.class);
+    private final Logger logger = LoggerFactory.getLogger(HouzzLeakCanaryMemoryDumpListener.class);
     private final TestCaseEvent testCase;
-    private Configuration configuration;
 
-    public AppSessionsListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase, Configuration configuration) {
+    public HouzzLeakCanaryMemoryDumpListener(Device device, FileManager fileManager, Pool pool, TestCaseEvent testCase) {
         this.device = device;
         this.fileManager = fileManager;
         this.pool = pool;
         this.testCase = testCase;
-        this.configuration = configuration;
     }
 
     @Override
     public void testRunStarted(String runName, int testCount) {
+
     }
 
     @Override
     public void testStarted(TestIdentifier test) {
+
+        try {
+            device.getDeviceInterface().root();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        } catch (AdbCommandRejectedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ShellCommandUnresponsiveException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
+            device.getDeviceInterface().executeShellCommand("am start -n \"com.houzz.app/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://houzz.app/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=true\"", receiver);
+            Thread.sleep(5000);
+            device.getDeviceInterface().executeShellCommand("am force-stop com.houzz.app", receiver);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        } catch (AdbCommandRejectedException e) {
+            e.printStackTrace();
+        } catch (ShellCommandUnresponsiveException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -62,39 +89,44 @@ public class AppSessionsListener implements ITestRunListener {
     @Override
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
         try {
-            device.getDeviceInterface().root();
+            CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
+            device.getDeviceInterface().executeShellCommand("am start -n \"com.houzz.app/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://houzz.app/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=false\"", receiver);
+            Thread.sleep(5000);
         } catch (TimeoutException e) {
             e.printStackTrace();
         } catch (AdbCommandRejectedException e) {
             e.printStackTrace();
+        } catch (ShellCommandUnresponsiveException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
         try {
-            Path localSessionsFolder = fileManager.createDirectory("data", pool, device, testIdentifier);
-            adbPull(device.getDeviceInterface(), obtainDirectoryFileEntry("/data/data/" + configuration.getApplicationPackage() + "/files/sessions/"), localSessionsFolder.toString());
+            Path localLeakCanaryFolder = fileManager.createDirectory("leakcanary", pool, device, testIdentifier);
+            adbPull(device.getDeviceInterface(), getDirectoryOnExternalStorage(device.getDeviceInterface(), "Download/leakcanary-com.houzz.app"), localLeakCanaryFolder.toString());
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        try {
-            CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            device.getDeviceInterface().executeShellCommand("rm -fr /data/data/" + configuration.getApplicationPackage() + "/files/sessions", receiver);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+
+    private FileEntry getDirectoryOnExternalStorage(IDevice device, final String dir)
+            throws Exception {
+        String externalPath = getExternalStoragePath(device, dir);
+        return obtainDirectoryFileEntry(externalPath);
+    }
+
+    private String getExternalStoragePath(IDevice device, final String path) throws Exception {
+        CollectingOutputReceiver pathNameOutputReceiver = new CollectingOutputReceiver();
+        device.executeShellCommand("echo $EXTERNAL_STORAGE", pathNameOutputReceiver);
+        return pathNameOutputReceiver.getOutput().trim() + "/" + path;
+    }
 
     /** Get a {@link FileEntry} for an arbitrary path. */
     static FileEntry obtainDirectoryFileEntry(String path) {

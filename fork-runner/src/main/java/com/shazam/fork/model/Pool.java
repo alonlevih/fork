@@ -36,11 +36,11 @@ public class Pool {
 	}
 
 	public int size() {
-		return devices.size();
+		return getDevices().size();
 	}
 
 	public boolean isEmpty() {
-		return devices.isEmpty();
+		return getDevices().isEmpty();
 	}
 
 	@Override
@@ -83,4 +83,10 @@ public class Pool {
 		name = builder.name;
 		devices = builder.devices;
 	}
+
+	protected Pool(String poolName) {
+		name = poolName;
+		devices = null;
+	}
 }
+

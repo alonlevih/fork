@@ -81,6 +81,10 @@ public class PoolLoader {
             return new EveryoneGetsAPoolLoader();
         }
 
+        if (poolingStrategy.dynamic != null) {
+            return new DynamicDevicePoolLoader(poolingStrategy.dynamic, deviceLoader);
+        }
+
         throw new NoPoolLoaderConfiguredException("Could not determine which how to load pools to use based on your configuration");
     }
 }

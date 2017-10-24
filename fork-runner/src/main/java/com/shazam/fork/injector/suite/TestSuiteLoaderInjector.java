@@ -15,12 +15,13 @@ import com.shazam.fork.suite.TestSuiteLoader;
 import static com.shazam.fork.injector.ConfigurationInjector.configuration;
 import static com.shazam.fork.injector.io.DexFileExtractorInjector.dexFileExtractor;
 import static com.shazam.fork.injector.suite.TestClassMatcherInjector.testClassMatcher;
+import static com.shazam.fork.injector.suite.TestMethodMatcherInjector.testMethodMatcher;
 
 public class TestSuiteLoaderInjector {
 
     private TestSuiteLoaderInjector() {}
 
     public static TestSuiteLoader testSuiteLoader() {
-        return new TestSuiteLoader(configuration().getInstrumentationApk(), dexFileExtractor(), testClassMatcher());
+        return new TestSuiteLoader(configuration().getInstrumentationApk(), dexFileExtractor(), testClassMatcher(), testMethodMatcher());
     }
 }

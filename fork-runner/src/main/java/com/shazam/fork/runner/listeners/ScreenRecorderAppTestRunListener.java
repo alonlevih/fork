@@ -12,7 +12,6 @@ package com.shazam.fork.runner.listeners;
 import com.android.ddmlib.*;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
-import com.shazam.fork.Configuration;
 import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.system.adb.CollectingShellOutputReceiver;
@@ -30,16 +29,14 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
     private final Pool pool;
     private final Device device;
     private final IDevice deviceInterface;
-    private Configuration configuration;
 
     private boolean hasFailed;
 
-    public ScreenRecorderAppTestRunListener(FileManager fileManager, Pool pool, Device device, Configuration configuration) {
+    public ScreenRecorderAppTestRunListener(FileManager fileManager, Pool pool, Device device) {
         this.fileManager = fileManager;
         this.pool = pool;
         this.device = device;
         deviceInterface = device.getDeviceInterface();
-        this.configuration = configuration;
     }
 
     @Override
@@ -56,7 +53,7 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
         hasFailed = false;
         try {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            deviceInterface.executeShellCommand(String.format("am start -a \"android.intent.action.videorecord.START\" -e outputFileName %s -n \"\" + configuration.getApplicationPackage() + \".screenrecord/\" + configuration.getApplicationPackage() + \".screenrecord.VideoRecordingActivity\"", createFilenameForTest(test, SCREENRECORDAPP)), receiver);
+            deviceInterface.executeShellCommand(String.format("am start -a \"android.intent.action.videorecord.START\" -e outputFileName %s -n \"com.houzz.screenrecord/com.houzz.screenrecord.VideoRecordingActivity\"", createFilenameForTest(test, SCREENRECORDAPP)), receiver);
         } catch (TimeoutException e) {
             e.printStackTrace();
         } catch (AdbCommandRejectedException e) {
@@ -86,15 +83,15 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
         try {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            deviceInterface.executeShellCommand("am start -a \"android.intent.action.videorecord.STOP\" -n \"" + configuration.getApplicationPackage() + ".screenrecord/" + configuration.getApplicationPackage() + ".screenrecord.VideoRecordingActivity\"", receiver);
+            deviceInterface.executeShellCommand("am start -a \"android.intent.action.videorecord.STOP\" -n \"com.houzz.screenrecord/com.houzz.screenrecord.VideoRecordingActivity\"", receiver);
 
             if (hasFailed) {
                 Thread.sleep(1000);
                 File localVideoFile = fileManager.createFile(SCREENRECORDAPP, pool, device, test);
-                deviceInterface.pullFile(String.format("/storage/emulated/0/android/data/" + configuration.getApplicationPackage() + ".screenrecord/cache/recordings/%s", createFilenameForTest(test, SCREENRECORDAPP)), localVideoFile.getAbsolutePath());
+                deviceInterface.pullFile(String.format("/storage/emulated/0/android/data/com.houzz.screenrecord/cache/recordings/%s", createFilenameForTest(test, SCREENRECORDAPP)), localVideoFile.getAbsolutePath());
             }
 
-            deviceInterface.executeShellCommand("rm -fr /storage/emulated/0/android/data/" + configuration.getApplicationPackage() + ".screenrecord/cache/recordings", receiver);
+            deviceInterface.executeShellCommand("rm -fr /storage/emulated/0/android/data/com.houzz.screenrecord/cache/recordings", receiver);
         } catch (TimeoutException e) {
             e.printStackTrace();
         } catch (AdbCommandRejectedException e) {

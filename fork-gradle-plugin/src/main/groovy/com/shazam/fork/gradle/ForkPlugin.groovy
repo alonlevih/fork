@@ -82,6 +82,7 @@ class ForkPlugin implements Plugin<Project> {
             title = config.title
             subtitle = config.subtitle
             testClassRegex = config.testClassRegex
+            testMethodRegex = config.testMethodRegex
             testPackage = config.testPackage
             testOutputTimeout = config.testOutputTimeout
             testSize = config.testSize

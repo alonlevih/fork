@@ -32,11 +32,13 @@ public class TestSuiteLoader {
     private final File instrumentationApkFile;
     private final DexFileExtractor dexFileExtractor;
     private final TestClassMatcher testClassMatcher;
+    private final TestMethodMatcher testMethodMatcher;
 
-    public TestSuiteLoader(File instrumentationApkFile, DexFileExtractor dexFileExtractor, TestClassMatcher testClassMatcher) {
+    public TestSuiteLoader(File instrumentationApkFile, DexFileExtractor dexFileExtractor, TestClassMatcher testClassMatcher, TestMethodMatcher testMethodMatcher) {
         this.instrumentationApkFile = instrumentationApkFile;
         this.dexFileExtractor = dexFileExtractor;
         this.testClassMatcher = testClassMatcher;
+        this.testMethodMatcher = testMethodMatcher;
     }
 
     public Collection<TestCaseEvent> loadTestSuite() throws NoTestCasesFoundException {
@@ -46,6 +48,7 @@ public class TestSuiteLoader {
                 .filter(c -> testClassMatcher.matchesPatterns(c))
                 .map(this::convertClassToTestCaseEvents)
                 .flatMap(Collection::stream)
+                .filter(m -> testMethodMatcher == null || testMethodMatcher.matchesPatterns(m))
                 .collect(toList());
 
         if (testCaseEvents.isEmpty()) {

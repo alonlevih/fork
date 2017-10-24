@@ -55,6 +55,8 @@ class ForkRunTask extends DefaultTask implements VerificationTask {
 
     String testClassRegex
 
+    String testMethodRegex
+
     String testPackage
 
     boolean isCoverageEnabled
@@ -99,6 +101,7 @@ class ForkRunTask extends DefaultTask implements VerificationTask {
                 .withTitle(title)
                 .withSubtitle(subtitle)
                 .withTestClassRegex(testClassRegex)
+                .withTestMethodRegex(testMethodRegex)
                 .withTestPackage(testPackage)
                 .withTestOutputTimeout(testOutputTimeout)
                 .withTestSize(testSize)
