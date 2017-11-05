@@ -13,7 +13,9 @@
 package com.shazam.fork.summary;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -23,8 +25,8 @@ public class Summary {
     private final String title;
     private final String subtitle;
     private final ArrayList<String> ignoredTests;
-    private final ArrayList<String> failedTests;
-    private final ArrayList<String> flakyTests;
+    private final Set<String> failedTests;
+    private final Set<String> flakyTests;
 
     @Nonnull
     public List<PoolSummary> getPoolSummaries() {
@@ -44,11 +46,11 @@ public class Summary {
         return ignoredTests;
     }
 
-    public ArrayList<String> getFailedTests() {
+    public Set<String> getFailedTests() {
         return failedTests;
     }
 
-    public ArrayList<String> getFlakyTests() {
+    public Set<String> getFlakyTests() {
         return flakyTests;
     }
 
@@ -57,8 +59,8 @@ public class Summary {
         private final ArrayList<String> ignoredTests = new ArrayList<>();
         private String title = "Report Title";
         private String subtitle = "Report Subtitle";
-        private ArrayList<String> failedTests =  new ArrayList<>();
-        private ArrayList<String> flakyTests =  new ArrayList<>();
+        private Set<String> failedTests =  new HashSet<>();
+        private Set<String> flakyTests =  new HashSet<>();
 
         public static Builder aSummary() {
             return new Builder();
@@ -84,13 +86,13 @@ public class Summary {
             return this;
         }
 
-        public Builder addFailedTests(String failedTests) {
-            this.failedTests.add(failedTests);
+        public Builder addFailedTests(String test) {
+            this.failedTests.add(test);
             return this;
         }
 
-        public Builder addFlakyTests(String flakyTests) {
-            this.flakyTests.add(flakyTests);
+        public Builder addFlakyTests(String test) {
+            this.flakyTests.add(test);
             return this;
         }
 

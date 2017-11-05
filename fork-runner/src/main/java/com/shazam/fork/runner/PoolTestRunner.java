@@ -13,6 +13,7 @@
 package com.shazam.fork.runner;
 
 import com.shazam.fork.model.Device;
+import com.shazam.fork.model.DynamicPool;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 
@@ -22,10 +23,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Phaser;
 
 import static com.shazam.fork.Utils.namedExecutor;
 
-public class PoolTestRunner implements Runnable {
+public class PoolTestRunner implements Runnable, DynamicPool.NewDeviceListener {
     private final Logger logger = LoggerFactory.getLogger(PoolTestRunner.class);
     public static final String DROPPED_BY = "DroppedBy-";
 
@@ -34,6 +36,9 @@ public class PoolTestRunner implements Runnable {
     private final CountDownLatch poolCountDownLatch;
     private final DeviceTestRunnerFactory deviceTestRunnerFactory;
     private final ProgressReporter progressReporter;
+    private Phaser phaser;
+    private ExecutorService concurrentDeviceExecutor;
+    private ExecutorService deviceMonitorExecutor;
 
     public PoolTestRunner(DeviceTestRunnerFactory deviceTestRunnerFactory, Pool pool,
                           Queue<TestCaseEvent> testCases,
@@ -47,28 +52,43 @@ public class PoolTestRunner implements Runnable {
     }
 
     public void run() {
-        ExecutorService concurrentDeviceExecutor = null;
         String poolName = pool.getName();
         try {
-            int devicesInPool = pool.size();
-            concurrentDeviceExecutor = namedExecutor(devicesInPool, "DeviceExecutor-%d");
-            CountDownLatch deviceCountDownLatch = new CountDownLatch(devicesInPool);
+            concurrentDeviceExecutor = namedExecutor("DeviceExecutor-%d");
+            deviceMonitorExecutor = namedExecutor("deviceMonitorExecutor-%d");
+            phaser = new Phaser(1);
             logger.info("Pool {} started", poolName);
+
             for (Device device : pool.getDevices()) {
-                Runnable deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
-                        deviceCountDownLatch, device, progressReporter);
-                concurrentDeviceExecutor.execute(deviceTestRunner);
+                onNewDevice(device);
             }
-            deviceCountDownLatch.await();
-        } catch (InterruptedException e) {
+
+            if (pool instanceof DynamicPool) {
+                DynamicPool dynamicPool = (DynamicPool) this.pool;
+                dynamicPool.registerNewDeviceListener(this);
+                Runnable deviceMonitor = dynamicPool.createDeviceMonitor();
+                deviceMonitorExecutor.execute(deviceMonitor);
+            }
+
+            phaser.arriveAndAwaitAdvance();
+        } catch (Exception e) {
             logger.warn("Pool {} was interrupted while running", poolName);
         } finally {
             if (concurrentDeviceExecutor != null) {
                 concurrentDeviceExecutor.shutdown();
             }
+            if (deviceMonitorExecutor != null) {
+                deviceMonitorExecutor.shutdown();
+            }
             logger.info("Pool {} finished", poolName);
             poolCountDownLatch.countDown();
             logger.info("Pools remaining: {}", poolCountDownLatch.getCount());
         }
+    }
+
+    public void onNewDevice(Device device) {
+        Runnable deviceTestRunner = deviceTestRunnerFactory.createDeviceTestRunner(pool, testCases,
+                phaser, device, progressReporter);
+        concurrentDeviceExecutor.execute(deviceTestRunner);
     }
 }

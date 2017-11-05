@@ -47,7 +47,7 @@ class RawLogCatWriter implements LogCatWriter {
 				write("\n", fileWriter);
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			e.printStackTrace();
 		} finally {
 			closeQuietly(fileWriter);
 		}

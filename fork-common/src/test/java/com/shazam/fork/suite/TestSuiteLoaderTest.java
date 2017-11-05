@@ -80,7 +80,7 @@ public class TestSuiteLoaderTest {
     @Test
     public void populatesTestCaseEvents() throws Exception {
         TestSuiteLoader testSuiteLoader = new TestSuiteLoader(ANY_INSTRUMENTATION_APK_FILE, fakeDexFileExtractor,
-                fakeTestClassMatcher);
+                fakeTestClassMatcher, (TestMethodMatcher) null);
 
         assertThat(testSuiteLoader.loadTestSuite(), containsInAnyOrder(
                 sameTestEventAs("com.shazam.forktest.IgnoredClassTest", "methodOfAnIgnoredTestClass", new AnnotationItem[0], true),

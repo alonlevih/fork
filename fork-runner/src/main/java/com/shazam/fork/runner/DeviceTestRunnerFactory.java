@@ -14,7 +14,7 @@ import com.shazam.fork.model.*;
 import com.shazam.fork.system.adb.Installer;
 
 import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Phaser;
 
 public class DeviceTestRunnerFactory {
 
@@ -28,7 +28,7 @@ public class DeviceTestRunnerFactory {
 
     public Runnable createDeviceTestRunner(Pool pool,
                                            Queue<TestCaseEvent> testClassQueue,
-                                           CountDownLatch deviceInPoolCountDownLatch,
+                                           Phaser phaser,
                                            Device device,
                                            ProgressReporter progressReporter
                                            ) {
@@ -37,7 +37,7 @@ public class DeviceTestRunnerFactory {
                 pool,
                 device,
                 testClassQueue,
-                deviceInPoolCountDownLatch,
+                phaser,
                 progressReporter,
                 testRunFactory);
     }

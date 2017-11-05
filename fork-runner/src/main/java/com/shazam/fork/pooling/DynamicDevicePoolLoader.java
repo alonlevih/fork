@@ -27,6 +27,7 @@ import static com.shazam.fork.model.Pool.Builder.aDevicePool;
 import static java.util.Map.Entry;
 
 public class DynamicDevicePoolLoader implements DevicePoolLoader {
+    private static final String DEFAULT_POOL_NAME = "all-devices";
     private final DynamicPooling dynamicPooling;
     private DeviceLoader deviceLoader;
 
@@ -37,7 +38,11 @@ public class DynamicDevicePoolLoader implements DevicePoolLoader {
 
 	public Collection<Pool> loadPools(Devices devices) {
 		Collection<Pool> pools = new ArrayList<>();
-        pools.add(new DynamicPool("all-devices", deviceLoader));
+        DynamicPool defaultPoolBuilder = new DynamicPool(DEFAULT_POOL_NAME, deviceLoader);
+        for (Device device : devices.getDevices()) {
+            defaultPoolBuilder.addDevice(device);
+        }
+        pools.add(defaultPoolBuilder);
 		return pools;
 	}
 }

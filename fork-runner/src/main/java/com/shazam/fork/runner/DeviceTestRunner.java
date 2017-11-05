@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Phaser;
 
 import static com.shazam.fork.system.io.RemoteFileManager.*;
 
@@ -33,7 +33,7 @@ public class DeviceTestRunner implements Runnable {
     private final Pool pool;
     private final Device device;
     private final Queue<TestCaseEvent> queueOfTestsInPool;
-    private final CountDownLatch deviceCountDownLatch;
+    private final Phaser phaser;
     private final ProgressReporter progressReporter;
     private final TestRunFactory testRunFactory;
 
@@ -41,43 +41,65 @@ public class DeviceTestRunner implements Runnable {
                             Pool pool,
                             Device device,
                             Queue<TestCaseEvent> queueOfTestsInPool,
-                            CountDownLatch deviceCountDownLatch,
+                            Phaser phaser,
                             ProgressReporter progressReporter,
                             TestRunFactory testRunFactory) {
         this.installer = installer;
         this.pool = pool;
         this.device = device;
         this.queueOfTestsInPool = queueOfTestsInPool;
-        this.deviceCountDownLatch = deviceCountDownLatch;
+        this.phaser = phaser;
         this.progressReporter = progressReporter;
         this.testRunFactory = testRunFactory;
     }
 
     @Override
     public void run() {
-        IDevice deviceInterface = device.getDeviceInterface();
-        try {
-            DdmPreferences.setTimeOut(30000);
-            installer.prepareInstallation(deviceInterface);
-            // For when previous run crashed/disconnected and left files behind
-            removeRemoteDirectory(deviceInterface);
-            createRemoteDirectory(deviceInterface);
-            createCoverageDirectory(deviceInterface);
-            clearLogcat(deviceInterface);
-
+        phaser.register();
+        if (tryInstall()) {
             TestCaseEvent testCaseEvent;
-            while ((testCaseEvent = queueOfTestsInPool.poll()) != null) {
-                TestRun testRun = testRunFactory.createTestRun(testCaseEvent,
-                        installer,
-                        device,
-                        pool,
-                        progressReporter,
-                        queueOfTestsInPool);
-                testRun.execute();
+            while (device.getDeviceInterface().isOnline() && (testCaseEvent = queueOfTestsInPool.poll()) != null) {
+                try {
+                    TestRun testRun = testRunFactory.createTestRun(testCaseEvent,
+                            installer,
+                            device,
+                            pool,
+                            progressReporter,
+                            queueOfTestsInPool);
+                    testRun.execute();
+                } catch (Exception ex) {
+                    // logger.warn(e.toString());
+                }
             }
-        } finally {
-            logger.info("Device {} from pool {} finished", device.getSerial(), pool.getName());
-            deviceCountDownLatch.countDown();
+        }
+
+        unregisterDevice();
+        logger.info("Device {} from pool {} finished", device.getSerial(), pool.getName());
+    }
+
+    private boolean tryInstall() {
+        while (device.getDeviceInterface().isOnline()) {
+            try {
+                IDevice deviceInterface = device.getDeviceInterface();
+                DdmPreferences.setTimeOut(30000);
+                installer.prepareInstallation(deviceInterface);
+                // For when previous run crashed/disconnected and left files behind
+                removeRemoteDirectory(deviceInterface);
+                createRemoteDirectory(deviceInterface);
+                createCoverageDirectory(deviceInterface);
+                clearLogcat(deviceInterface);
+                return true;
+            } catch (Exception ex) {
+                // logger.warn(e.toString());
+            }
+        }
+        return false;
+    }
+
+    private void unregisterDevice() {
+        phaser.arriveAndDeregister();
+        if (pool instanceof DynamicPool) {
+            ((DynamicPool)pool).getActiveDevices().remove(device);
         }
     }
 

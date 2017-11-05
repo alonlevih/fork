@@ -10,6 +10,7 @@
 
 package com.shazam.fork.pooling;
 
+import com.shazam.fork.DynamicPooling;
 import com.shazam.fork.Configuration;
 import com.shazam.fork.PoolingStrategy;
 import com.shazam.fork.device.DeviceLoader;
@@ -81,8 +82,8 @@ public class PoolLoader {
             return new EveryoneGetsAPoolLoader();
         }
 
-        if (poolingStrategy.dynamic != null) {
-            return new DynamicDevicePoolLoader(poolingStrategy.dynamic, deviceLoader);
+        if (poolingStrategy.dynamic != null && poolingStrategy.dynamic) {
+            return new DynamicDevicePoolLoader(new DynamicPooling(), deviceLoader);
         }
 
         throw new NoPoolLoaderConfiguredException("Could not determine which how to load pools to use based on your configuration");

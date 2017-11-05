@@ -16,15 +16,18 @@ import com.shazam.fork.model.FailedTestCaseEvent;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.runner.ProgressReporter;
+import com.shazam.fork.summary.TestCase;
+import com.shazam.fork.summary.TestSuite;
 import com.shazam.fork.system.io.FileManager;
 import com.shazam.fork.system.io.FileType;
 
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 
@@ -37,15 +40,14 @@ public class RetryListener extends NoOpITestRunListener {
 
     @Nonnull
     private final Device device;
-    private TestIdentifier failedTest;
     @Nonnull
     private final Queue<TestCaseEvent> queueOfTestsInPool;
     @Nonnull
     private final TestCaseEvent currentTestCaseEvent;
     private ProgressReporter progressReporter;
     private FileManager fileManager;
+    private final Serializer serializer;
     private Pool pool;
-    private String failedTrace;
 
     public RetryListener(@Nonnull Pool pool, @Nonnull Device device,
                          @Nonnull Queue<TestCaseEvent> queueOfTestsInPool,
@@ -63,31 +65,36 @@ public class RetryListener extends NoOpITestRunListener {
         this.progressReporter = progressReporter;
         this.pool = pool;
         this.fileManager = fileManager;
+        serializer = new Persister();
     }
     
     @Override
     public void testFailed(TestIdentifier test, String trace) {
-        failedTest = test;
-        failedTrace = trace;
-        progressReporter.recordFailedTestCase(pool, newTestCase(failedTest, currentTestCaseEvent.getAnnotations(), false));
-    }
+        progressReporter.recordFailedTestCase(pool, newTestCase(test, currentTestCaseEvent.getAnnotations(), false));
 
-    @Override
-    public void testRunEnded(long elapsedTime, Map<String, String> runMetrics) {
-        super.testRunEnded(elapsedTime, runMetrics);
-        if (failedTest != null) {
-            if (failedTrace != null && progressReporter.requestRetry(pool, FailedTestCaseEvent.newTestCase(failedTest, currentTestCaseEvent.getAnnotations(), false, failedTrace))) {
-                queueOfTestsInPool.add(currentTestCaseEvent);
-                logger.info("Test " + failedTest.toString() + " enqueued again into pool:" + pool.getName());
-                removeFailureTraceFiles();
-            } else {
-                logger.info("Test " + failedTest.toString() + " failed on device " + device.getSafeSerial() + " but retry is not allowed.");
-            }
+        if (progressReporter.requestRetry(pool, FailedTestCaseEvent.newTestCase(test, currentTestCaseEvent.getAnnotations(), false, trace))) {
+            queueOfTestsInPool.add(currentTestCaseEvent);
+            logger.info("Test " + test.toString() + " enqueued again into pool:" + pool.getName());
+        } else {
+            logger.info("Test " + test.toString() + " failed on device " + device.getSafeSerial() + " but retry is not allowed.");
         }
     }
 
-    public void removeFailureTraceFiles( ) {
-        final File file = fileManager.getFile(FileType.TEST, pool.getName(), device.getSafeSerial(), failedTest);
+    @Override
+    public void testStarted(TestIdentifier testCase) {
+        List<TestCase> testCases = new ArrayList<>(Arrays.asList(new TestCase(testCase.getTestName(), testCase.getClassName())));
+        TestSuite suite = new TestSuite(testCases, new HashMap<>());
+        suite.tests = suite.skipped = 1;
+        suite.name = pool.getName();
+        try {
+            serializer.write(suite, fileManager.createFile(FileType.TEST, pool, device, testCase));
+        } catch (Exception e) {
+            // logger.warn(e.toString())
+        }
+    }
+
+    public void removeFailureTraceFiles(TestIdentifier testCaseEvent) {
+        final File file = fileManager.getFile(FileType.TEST, pool.getName(), device.getSafeSerial(), testCaseEvent);
         boolean deleted = file.delete();
         if(!deleted){
             logger.warn("Failed to remove file  " + file.getAbsoluteFile() + " for a failed but enqueued again test");

@@ -14,6 +14,7 @@ package com.shazam.fork.summary;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Plain bean class, to feed to Moustache markup files.
@@ -24,6 +25,6 @@ public class HtmlSummary {
 	public String subtitle;
 	public ArrayList<String> ignoredTests;
     public String overallStatus;
-	public ArrayList<String> failedTests;
-	public ArrayList<String> flakyTests;
+	public Set<String> failedTests;
+	public Set<String> flakyTests;
 }

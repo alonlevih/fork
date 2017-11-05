@@ -60,7 +60,7 @@ public class ForkCli {
     }
 
     public static void main(String... args) {
-        args = "--sdk /Users/alonlevi/Library/Android/sdk --apk /Users/alonlevi/Workspace/c2android/buck-out/gen/app/bin_devBuck.apk --test-apk /Users/alonlevi/Workspace/c2android/buck-out/gen/app/instrumentation_devDebug_apk.apk --config /Users/alonlevi/Workspace/c2android/fork.json".split(" ");
+        args = "--sdk /Users/alonlevi/Library/Android/sdk --apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-dev-debuggableRelease.apk --test-apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-dev-debuggableRelease-androidTest.apk --config /Users/alonlevi/Workspace/c2android/fork.json".split(" ");
         CommandLineArgs parsedArgs = new CommandLineArgs();
         JCommander jc = new JCommander(parsedArgs);
 

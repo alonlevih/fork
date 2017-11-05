@@ -24,6 +24,7 @@ import org.simpleframework.xml.core.Persister;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.shazam.fork.model.Device.Builder.aDevice;
 import static com.shazam.fork.summary.PoolSummary.Builder.aPoolSummary;
@@ -48,6 +49,7 @@ public class SummaryCompiler {
         Summary.Builder summaryBuilder = aSummary();
         for (Pool pool : pools) {
             PoolSummary poolSummary = compilePoolSummary(pool, summaryBuilder);
+            addFailedTests(poolSummary.getTestResults(), summaryBuilder);
             summaryBuilder.addPoolSummary(poolSummary);
         }
         addIgnoredTests(testCases, summaryBuilder);
@@ -64,7 +66,8 @@ public class SummaryCompiler {
         }
         Device watchdog = getPoolWatchdog(pool.getName());
         compileResultsForDevice(pool, poolSummaryBuilder, summaryBuilder, watchdog);
-        return poolSummaryBuilder.build();
+        PoolSummary summary = poolSummaryBuilder.build();
+        return summary;
     }
 
     private void compileResultsForDevice(Pool pool, PoolSummary.Builder poolSummaryBuilder, Summary.Builder summaryBuilder, Device device) {
@@ -75,7 +78,6 @@ public class SummaryCompiler {
         for (File file : deviceResultFiles) {
             Collection<TestResult> testResult = parseTestResultsFromFile(file, device);
             poolSummaryBuilder.addTestResults(testResult);
-            addFailedTests(testResult, summaryBuilder);
         }
     }
 
@@ -101,11 +103,11 @@ public class SummaryCompiler {
             if (totalFailureCount > 0) {
                 if (totalFailureCount > configuration.getRetryPerTestCaseQuota()) {
                     String failedTest = totalFailureCount + " times " + testResult.getTestClass()
-                            + "#" + testResult.getTestMethod() + " on " + testResult.getDevice().getSerial();
+                            + "#" + testResult.getTestMethod();
                     summaryBuilder.addFailedTests(failedTest);
                 } else {
                     String flakyTest = totalFailureCount + " times " + testResult.getTestClass()
-                            + "#" + testResult.getTestMethod() + " on " + testResult.getDevice().getSerial();
+                            + "#" + testResult.getTestMethod();
                     summaryBuilder.addFlakyTests(flakyTest);
                 }
             }
@@ -118,7 +120,7 @@ public class SummaryCompiler {
             Collection<TestCase> testCases = testSuite.getTestCase();
             List<TestResult> result  = Lists.newArrayList();
             if ((testCases == null)) {
-                return result;
+                return defaultTestResult(file, device, "Test method was not run!");
             }
 
             for(TestCase testCase : testCases){
@@ -127,8 +129,20 @@ public class SummaryCompiler {
             }
             return result;
         } catch (Exception e) {
-            throw new RuntimeException("Error when parsing file: " + file.getAbsolutePath(), e);
+            return defaultTestResult(file, device, e.getMessage());
         }
+    }
+
+    private Collection<TestResult> defaultTestResult(File file, Device device, String errorTrace) {
+        String[] classAndMethodName = file.getName().split(Pattern.quote("#"));
+        List<TestResult> result  = Lists.newArrayList();
+        result.add(aTestResult()
+                .withDevice(device)
+                .withTestClass(classAndMethodName[0])
+                .withTestMethod(classAndMethodName[1].replace(".xml", ""))
+                .withErrorTrace(errorTrace)
+                .build());
+        return result;
     }
 
     private TestResult getTestResult(Device device, TestSuite testSuite, TestCase testCase) {

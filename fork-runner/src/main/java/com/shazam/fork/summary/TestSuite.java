@@ -12,17 +12,35 @@
  */
 package com.shazam.fork.summary;
 
-import org.simpleframework.xml.ElementList;
-import org.simpleframework.xml.ElementMap;
-import org.simpleframework.xml.Path;
-import org.simpleframework.xml.Root;
+import org.simpleframework.xml.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
 @Root
-class TestSuite {
+public class TestSuite {
+
+    @Attribute
+    public String name;
+    @Attribute
+    public int tests;
+    @Attribute
+    public int failures;
+    @Attribute
+    public int errors;
+    @Attribute
+    public int skipped;
+    @Attribute
+    public float time;
+
+    public TestSuite() {}
+
+    public TestSuite(List<TestCase> testCases, Map<String, String> properties) {
+        this.testCases = testCases;
+        this.properties = properties;
+    }
 
 	@ElementList(inline=true, type=TestCase.class, required=false)
 	private List<TestCase> testCases;

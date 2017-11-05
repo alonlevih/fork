@@ -80,6 +80,12 @@ public class TestResult {
         }
     }
 
+    public void setTotalFailuresCount(int sum) {
+        if (testMetrics != null) {
+            testMetrics.put(SUMMARY_KEY_TOTAL_FAILURE_COUNT, String.valueOf(sum));
+        }
+    }
+
     public static class Builder {
         private Device device;
         private float timeTaken;

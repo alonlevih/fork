@@ -17,6 +17,8 @@ import com.shazam.fork.model.Pool;
 import com.shazam.fork.system.adb.CollectingShellOutputReceiver;
 import com.shazam.fork.system.io.FileManager;
 import com.shazam.fork.system.io.FileType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,7 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
     private final Pool pool;
     private final Device device;
     private final IDevice deviceInterface;
+    private final Logger logger = LoggerFactory.getLogger(ScreenRecorderAppTestRunListener.class);
 
     private boolean hasFailed;
 
@@ -55,13 +58,13 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
             deviceInterface.executeShellCommand(String.format("am start -a \"android.intent.action.videorecord.START\" -e outputFileName %s -n \"com.houzz.screenrecord/com.houzz.screenrecord.VideoRecordingActivity\"", createFilenameForTest(test, SCREENRECORDAPP)), receiver);
         } catch (TimeoutException e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         } catch (IOException e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         };
     }
 
@@ -92,20 +95,9 @@ class ScreenRecorderAppTestRunListener implements ITestRunListener {
             }
 
             deviceInterface.executeShellCommand("rm -fr /storage/emulated/0/android/data/com.houzz.screenrecord/cache/recordings", receiver);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SyncException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ;
+        } catch (Exception e) {
+            // logger.warn(e.toString())
+        } 
     }
 
     @Override

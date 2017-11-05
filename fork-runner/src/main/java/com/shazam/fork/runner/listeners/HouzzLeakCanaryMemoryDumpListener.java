@@ -46,14 +46,8 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
 
         try {
             device.getDeviceInterface().root();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
 
         try {
@@ -61,16 +55,8 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
             device.getDeviceInterface().executeShellCommand("am start -n \"com.houzz.app/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://houzz.app/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=true\"", receiver);
             Thread.sleep(5000);
             device.getDeviceInterface().executeShellCommand("am force-stop com.houzz.app", receiver);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
     }
 
@@ -92,26 +78,16 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
             device.getDeviceInterface().executeShellCommand("am start -n \"com.houzz.app/.URLNavigatorActivity\" -a \"android.intent.action.VIEW\" -d \"https://houzz.app/booleanSettings?KEY_ENABLE_LEAK_CANARY_STR=false\"", receiver);
             Thread.sleep(5000);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
 
         TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
         try {
             Path localLeakCanaryFolder = fileManager.createDirectory("leakcanary", pool, device, testIdentifier);
             adbPull(device.getDeviceInterface(), getDirectoryOnExternalStorage(device.getDeviceInterface(), "Download/leakcanary-com.houzz.app"), localLeakCanaryFolder.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         }
     }
 
@@ -129,7 +105,7 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
     }
 
     /** Get a {@link FileEntry} for an arbitrary path. */
-    static FileEntry obtainDirectoryFileEntry(String path) {
+    private FileEntry obtainDirectoryFileEntry(String path) {
         try {
             FileEntry lastEntry = null;
             Constructor<FileEntry> c =
@@ -140,10 +116,8 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
                 lastEntry = c.newInstance(lastEntry, part, TYPE_DIRECTORY, lastEntry == null);
             }
             return lastEntry;
-        } catch (NoSuchMethodException ignored) {
-        } catch (InvocationTargetException ignored) {
-        } catch (InstantiationException ignored) {
-        } catch (IllegalAccessException ignored) {
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
         return null;
     }
@@ -153,7 +127,7 @@ public class HouzzLeakCanaryMemoryDumpListener implements ITestRunListener {
             device.getSyncService().pull(new FileEntry[]{remoteDirName}, localDirName,
                     getNullProgressMonitor());
         } catch (Exception e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         }
     }
 

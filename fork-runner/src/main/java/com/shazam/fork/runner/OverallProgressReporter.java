@@ -125,7 +125,7 @@ public class OverallProgressReporter implements ProgressReporter {
         }
 
         public boolean requestRetry(int currentSingleTestCaseFailures, String failureTrace) {
-            if (failureRetryRegexPattern != null && !failureRetryRegexPattern.matcher(failureTrace).find()) {
+            if (failureTrace != null && failureRetryRegexPattern != null && !failureRetryRegexPattern.matcher(failureTrace).find()) {
                 return false;
             }
             boolean totalAllowedRetryAvailable = totalAllowedRetryAvailable();

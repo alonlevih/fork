@@ -16,7 +16,7 @@ public class PoolingStrategy {
     public Boolean eachDevice;
     public ComputedPooling computed;
     public ManualPooling manual;
-    public DynamicPooling dynamic;
+    public Boolean dynamic;
 
     public void computed(Closure<?> computedClosure) {
         computed = new ComputedPooling();
@@ -28,10 +28,6 @@ public class PoolingStrategy {
         manual = new ManualPooling();
         manualClosure.setDelegate(manual);
         manualClosure.call();
-    }
-
-    public void dynamic() {
-        dynamic = new DynamicPooling();
     }
 
 }

@@ -12,6 +12,7 @@
  */
 package com.shazam.fork.runner.listeners;
 
+import com.android.ddmlib.Log;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.gson.Gson;
@@ -46,7 +47,7 @@ class JsonLogCatWriter implements LogCatWriter {
 			fileWriter = new FileWriter(file);
 			gson.toJson(logCatMessages, fileWriter);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			e.printStackTrace();
 		} finally {
 			closeQuietly(fileWriter);
 		}

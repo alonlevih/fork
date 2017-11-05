@@ -49,6 +49,7 @@ public class TestRunListenersFactory {
                                                       ProgressReporter progressReporter,
                                                       Queue<TestCaseEvent> testCaseEventQueue) {
         List<ITestRunListener> iTestRunListeners = new ArrayList<>(asList(
+                new RetryListener(pool, device, testCaseEventQueue, testCase, progressReporter, fileManager),
                 new ProgressTestRunListener(pool, progressReporter),
                 getForkXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter),
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
@@ -57,7 +58,6 @@ public class TestRunListenersFactory {
                 new HouzzSessionsListener(device, fileManager, pool, testCase),
 //                new SlowWarningTestRunListener(),
                 getScreenTraceTestRunListener(fileManager, pool, device),
-                new RetryListener(pool, device, testCaseEventQueue, testCase, progressReporter, fileManager),
                 getCoverageTestRunListener(configuration, device, fileManager, pool, testCase)));
         if (configuration.getEnableLeakCanaryDump()) {
             iTestRunListeners.add(new HouzzLeakCanaryMemoryDumpListener(device, fileManager, pool, testCase));

@@ -64,35 +64,23 @@ public class HouzzSessionsListener implements ITestRunListener {
     public void testEnded(TestIdentifier test, Map<String, String> testMetrics) {
         try {
             device.getDeviceInterface().root();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
 
         TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
         try {
             Path localSessionsFolder = fileManager.createDirectory("data", pool, device, testIdentifier);
             adbPull(device.getDeviceInterface(), obtainDirectoryFileEntry("/data/data/com.houzz.app/files/sessions/"), localSessionsFolder.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
 
         try {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
             device.getDeviceInterface().executeShellCommand("rm -fr /data/data/com.houzz.app/files/sessions", receiver);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            // logger.warn(e.toString())
         }
     }
 
@@ -122,7 +110,7 @@ public class HouzzSessionsListener implements ITestRunListener {
             device.getSyncService().pull(new FileEntry[]{remoteDirName}, localDirName,
                     getNullProgressMonitor());
         } catch (Exception e) {
-            e.printStackTrace();
+            // logger.warn(e.toString())
         }
     }
 

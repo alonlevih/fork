@@ -12,6 +12,8 @@
  */
 package com.shazam.fork.model;
 
+import com.shazam.fork.runner.PoolTestRunner;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,8 +26,8 @@ import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
  * A grouping of {@link com.shazam.fork.model.Device}s.
  */
 public class Pool {
-	private final String name;
-	private final List<Device> devices;
+	protected final String name;
+	protected List<Device> devices;
 
 	public String getName() {
 		return name;
@@ -84,9 +86,9 @@ public class Pool {
 		devices = builder.devices;
 	}
 
-	protected Pool(String poolName) {
-		name = poolName;
-		devices = null;
+	protected Pool(String poolName, List<Device> devices) {
+		this.name = poolName;
+		this.devices = devices;
 	}
 }
 

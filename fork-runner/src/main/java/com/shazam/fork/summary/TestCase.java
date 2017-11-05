@@ -17,7 +17,7 @@ import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
 @Root(name="testcase", strict=false)
-class TestCase {
+public class TestCase {
 
 	@Attribute
 	private String name;
@@ -34,7 +34,12 @@ class TestCase {
 	@Element(required=false)
 	private String error;
 
-    TestCase() {
+	public TestCase(String name, String classname) {
+		this.name = name;
+		this.classname = classname;
+	}
+
+    public TestCase() {
     }
 
 	public String getName() {

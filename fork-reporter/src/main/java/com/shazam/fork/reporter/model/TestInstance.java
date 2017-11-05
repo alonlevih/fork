@@ -45,9 +45,6 @@ public class TestInstance {
 
         public Builder withResultStatusFrom(TestResult resultStatus) {
             Status status = fromResultStatus(resultStatus.getResultStatus());
-            if( status == PASS && resultStatus.getTotalFailureCount() > 0){
-                status = WARN;
-            }
             this.resultStatus = status;
             return this;
         }

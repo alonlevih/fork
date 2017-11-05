@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Nullable;
 
+import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 public class Utils {
@@ -30,5 +31,10 @@ public class Utils {
     public static ExecutorService namedExecutor(int numberOfThreads, String nameFormat) {
         ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
         return newFixedThreadPool(numberOfThreads, namedThreadFactory);
+    }
+
+    public static ExecutorService namedExecutor(String nameFormat) {
+        ThreadFactory namedThreadFactory = new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
+        return newCachedThreadPool(namedThreadFactory);
     }
 }

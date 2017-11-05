@@ -20,6 +20,7 @@ import com.shazam.fork.system.io.FileManager;
 import com.shazam.fork.system.io.FileType;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JsonLogCatRetriever implements LogCatRetriever {
@@ -38,8 +39,9 @@ public class JsonLogCatRetriever implements LogCatRetriever {
             FileReader fileReader = new FileReader(logcatJsonFile);
             return gson.fromJson(fileReader, new TypeToken<List<LogCatMessage>>() {}.getType());
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+        return new ArrayList<>();
     }
 
 }
