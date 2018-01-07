@@ -44,7 +44,7 @@ public class DynamicPool extends Pool {
 					try {
 						List<Device> devices = new ArrayList<>(deviceLoader.loadDevices().getDevices());
 						List<Device> addedDevices = devices.stream().filter(elem -> !activeDevices.stream().anyMatch(d -> StringUtils.equals(d.getSerial(), elem.getSerial()))).collect(Collectors.toList());
-						for (Device device : addedDevices) {
+						for (Device device : addedDevices.stream().filter(d -> d.getGeometry() != null).collect(Collectors.toList())) {
 							newDeviceListener.onNewDevice(device);
 							if (!DynamicPool.this.devices.stream().anyMatch(d -> StringUtils.equals(d.getSerial(), device.getSerial()))) {
 								DynamicPool.this.devices.add(device);

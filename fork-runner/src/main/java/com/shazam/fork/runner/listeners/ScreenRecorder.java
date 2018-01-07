@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import static com.shazam.fork.utils.Utils.millisSinceNanoTime;
 import static com.shazam.fork.system.io.RemoteFileManager.remoteVideoForTest;
@@ -30,8 +31,9 @@ class ScreenRecorder implements Runnable {
     private static final int DURATION = 60;
     private static final int BIT_RATE_MBPS = 1;
     private static final ScreenRecorderOptions RECORDER_OPTIONS = new ScreenRecorderOptions.Builder()
-            .setTimeLimit(DURATION, SECONDS)
             .setBitRate(BIT_RATE_MBPS)
+            .setSize(270, 480)
+            .setTimeLimit(30, TimeUnit.MINUTES)
             .build();
 
     private final String remoteFilePath;

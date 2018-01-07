@@ -12,12 +12,14 @@ package com.shazam.fork.runner.listeners;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
+import com.shazam.fork.Utils;
 import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.system.io.FileManager;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import static com.shazam.fork.system.io.FileType.SCREENRECORD;
 
@@ -29,6 +31,7 @@ class ScreenRecorderTestRunListener implements ITestRunListener {
 
     private boolean hasFailed;
     private ScreenRecorderStopper screenRecorderStopper;
+    private static Executor screenRecorderExecutor = Utils.namedExecutor(1, "screenRecorderExecutor");
 
     public ScreenRecorderTestRunListener(FileManager fileManager, Pool pool, Device device) {
         this.fileManager = fileManager;
@@ -47,7 +50,7 @@ class ScreenRecorderTestRunListener implements ITestRunListener {
         File localVideoFile = fileManager.createFile(SCREENRECORD, pool, device, test);
         screenRecorderStopper = new ScreenRecorderStopper(deviceInterface);
         ScreenRecorder screenRecorder = new ScreenRecorder(test, screenRecorderStopper, localVideoFile, deviceInterface);
-        new Thread(screenRecorder, "ScreenRecorder").start();
+        screenRecorderExecutor.execute(screenRecorder);
     }
 
     @Override
