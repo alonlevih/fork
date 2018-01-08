@@ -68,17 +68,26 @@ public class HouzzSessionsListener implements ITestRunListener {
             // logger.warn(e.toString())
         }
 
+        try {
+            CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
+            device.getDeviceInterface().executeShellCommand("run-as com.houzz.app mkdir /sdcard/Android/data/com.houzz.app/sessions/", receiver);
+            device.getDeviceInterface().executeShellCommand("run-as com.houzz.app cp -a /data/data/com.houzz.app/files/sessions/ /sdcard/Android/data/com.houzz.app/", receiver);
+        } catch (Exception e) {
+            // logger.warn(e.toString());
+        }
+
         TestIdentifier testIdentifier = new TestIdentifier(testCase.getTestClass(), testCase.getTestMethod());
         try {
             Path localSessionsFolder = fileManager.createDirectory("data", pool, device, testIdentifier);
-            adbPull(device.getDeviceInterface(), obtainDirectoryFileEntry("/data/data/com.houzz.app/files/sessions/"), localSessionsFolder.toString());
+            adbPull(device.getDeviceInterface(), obtainDirectoryFileEntry("/sdcard/Android/data/com.houzz.app/sessions/"), localSessionsFolder.toString());
         } catch (Exception e) {
             // logger.warn(e.toString())
         }
 
         try {
             CollectingShellOutputReceiver receiver = new CollectingShellOutputReceiver();
-            device.getDeviceInterface().executeShellCommand("rm -fr /data/data/com.houzz.app/files/sessions", receiver);
+            device.getDeviceInterface().executeShellCommand("run-as com.houzz.app rm -fr /data/data/com.houzz.app/files/sessions", receiver);
+            device.getDeviceInterface().executeShellCommand("rm -fr /sdcard/Android/data/com.houzz.app/sessions/", receiver);
         } catch (Exception e) {
             // logger.warn(e.toString())
         }

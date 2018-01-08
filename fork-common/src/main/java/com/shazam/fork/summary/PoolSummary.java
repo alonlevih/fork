@@ -58,11 +58,11 @@ public class PoolSummary {
 				if (finalTestResults.size() == 1) {
 					finalResult = finalTestResults.get(0);
 				} else {
-					Optional<TestResult> passResult = finalTestResults.stream().filter(t -> t.getResultStatus() == ResultStatus.PASS).findFirst();
-					if (passResult.isPresent()) {
-						finalResult = passResult.get();
+					Optional<TestResult> failedResult = finalTestResults.stream().filter(t -> t.getResultStatus() == ResultStatus.FAIL || t.getResultStatus() == ResultStatus.ERROR).findFirst();
+					if (failedResult.isPresent()) {
+						finalResult = failedResult.get();
 					} else {
-						finalResult = finalTestResults.stream().max((t, t1) -> (int) (t.getTimeTaken() - t1.getTimeTaken())).get();
+						finalResult = finalTestResults.stream().findAny().get();
 					}
 					finalResult.setTotalFailuresCount(finalTestResults.stream().mapToInt(t -> t.getTotalFailureCount()).max().getAsInt());
 				}
