@@ -14,10 +14,6 @@ package com.shazam.fork.summary;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PoolSummary {
 	private final String poolName;
@@ -33,7 +29,7 @@ public class PoolSummary {
 
 	public static class Builder {
 		private String poolName;
-		private Collection<TestResult> testResults = new ArrayList<>();
+		private final Collection<TestResult> testResults = new ArrayList<>();
 
 		public static Builder aPoolSummary() {
 			return new Builder();
@@ -49,31 +45,7 @@ public class PoolSummary {
 			return this;
 		}
 
-		private Builder summarize() {
-			ArrayList<TestResult> results = new ArrayList<>();
-			List<String> testMethods = testResults.stream().map(t -> t.getTestMethod()).distinct().collect(Collectors.toList());
-			for (String testMethod : testMethods) {
-				List<TestResult> finalTestResults = testResults.stream().filter(s -> s.getTestMethod().equals(testMethod)).collect(Collectors.toList());
-				TestResult finalResult = null;
-				if (finalTestResults.size() == 1) {
-					finalResult = finalTestResults.get(0);
-				} else {
-					Optional<TestResult> failedResult = finalTestResults.stream().filter(t -> t.getResultStatus() == ResultStatus.FAIL || t.getResultStatus() == ResultStatus.ERROR).findFirst();
-					if (failedResult.isPresent()) {
-						finalResult = failedResult.get();
-					} else {
-						finalResult = finalTestResults.stream().findAny().get();
-					}
-					finalResult.setTotalFailuresCount(finalTestResults.stream().mapToInt(t -> t.getTotalFailureCount()).max().getAsInt());
-				}
-				results.add(finalResult);
-			}
-			testResults = results;
-			return this;
-		}
-
 		public PoolSummary build() {
-			summarize();
 			return new PoolSummary(this);
 		}
 	}

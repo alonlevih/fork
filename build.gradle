@@ -9,16 +9,21 @@
  */
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.13'
+    gradleVersion = '4.1'
 }
 
 ext.sourceCompatibility = JavaVersion.VERSION_1_8
 ext.targetCompatibility = JavaVersion.VERSION_1_8
 
+ext.androidPlugin = '3.0.1'
+
 def repos = {
     mavenLocal()
     mavenCentral()
     jcenter()
+    maven {
+        url 'https://maven.google.com'
+    }
 }
 
 allprojects {

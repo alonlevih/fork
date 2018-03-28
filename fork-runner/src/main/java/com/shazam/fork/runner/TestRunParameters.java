@@ -31,6 +31,7 @@ public class TestRunParameters {
 	private final Installer installer;
 	private boolean autoGrantingPermissions;
 	private String denyPermissionsAnnotation;
+	private final String applicationPackage;
 
 	public TestCaseEvent getTest() {
 		return test;
@@ -73,6 +74,11 @@ public class TestRunParameters {
 		return autoGrantingPermissions;
 	}
 
+	public String getApplicationPackage() {
+		return applicationPackage;
+	}
+
+
 	public String getDenyPermissionsAnnotation() {
 		return denyPermissionsAnnotation;
 	}
@@ -89,6 +95,7 @@ public class TestRunParameters {
 		private Installer installer;
 		private boolean autoGrantPermissions;
 		private String denyPermissionsAnnotation;
+		private String applicationPackage;
 
 		public static Builder testRunParameters() {
 			return new Builder();
@@ -138,6 +145,12 @@ public class TestRunParameters {
 			return new TestRunParameters(this);
 		}
 
+		public Builder withApplicationPackage(String applicationPackage) {
+			this.applicationPackage = applicationPackage;
+			return this;
+		}
+
+
 		public Builder withInstaller(Installer installer) {
 			this.installer = installer;
 			return this;
@@ -166,5 +179,6 @@ public class TestRunParameters {
 		this.denyPermissionsAnnotation = builder.denyPermissionsAnnotation;
 		this.autoGrantingPermissions = builder.autoGrantPermissions;
 		this.installer = builder.installer;
+		this.applicationPackage = builder.applicationPackage;
 	}
 }

@@ -14,12 +14,14 @@ import com.android.ddmlib.testrunner.ITestRunListener;
 import com.shazam.fork.Configuration;
 import com.shazam.fork.model.*;
 import com.shazam.fork.runner.listeners.TestRunListenersFactory;
+import com.shazam.fork.system.PermissionGrantingManager;
 import com.shazam.fork.system.adb.Installer;
 
 import java.util.List;
 import java.util.Queue;
 
 import static com.shazam.fork.runner.TestRunParameters.Builder.testRunParameters;
+import static com.shazam.fork.system.PermissionGrantingManager.permissionGrantingManager;
 
 public class TestRunFactory {
 
@@ -61,6 +63,7 @@ public class TestRunFactory {
         return new TestRun(
                 pool.getName(),
                 testRunParameters,
-                testRunListeners);
+                testRunListeners,
+                permissionGrantingManager());
     }
 }

@@ -10,8 +10,6 @@
 
 package com.shazam.fork.suite;
 
-import org.jf.dexlib.ClassDefItem;
-
 public class FakeTestClassMatcher implements TestClassMatcher {
     private boolean matches;
 
@@ -28,7 +26,7 @@ public class FakeTestClassMatcher implements TestClassMatcher {
     }
 
     @Override
-    public boolean matchesPatterns(ClassDefItem typeDescriptor) {
+    public boolean matchesPatterns(String typeDescriptor) {
         return matches;
     }
 }

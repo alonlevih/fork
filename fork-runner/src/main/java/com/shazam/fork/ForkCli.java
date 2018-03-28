@@ -60,7 +60,7 @@ public class ForkCli {
     }
 
     public static void main(String... args) {
-        args = "--sdk /Users/alonlevi/Library/Android/sdk --apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-dev-debuggableRelease.apk --test-apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-prod-debuggableRelease-androidTest.apk --config /Users/alonlevi/Workspace/c2android/fork.json".split(" ");
+        args = "--sdk /Users/alonlevi/Library/Android/sdk --apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-dev-debuggableRelease.apk --test-apk /Users/alonlevi/Workspace/c2android/app/build/outputs/apk/app-dev-debuggableRelease-androidTest.apk --config /Users/alonlevi/Workspace/c2android/fork.json".split(" ");
         CommandLineArgs parsedArgs = new CommandLineArgs();
         JCommander jc = new JCommander(parsedArgs);
 
@@ -80,7 +80,7 @@ public class ForkCli {
 
         try {
             Reader configFileReader = new FileReader(parsedArgs.configurationFile);
-            ForkConfiguration forkConfiguration = gson().fromJson(configFileReader, ForkConfiguration.class);
+            ForkConfigurationExtension forkConfiguration = gson().fromJson(configFileReader, ForkConfigurationExtension.class);
 
             Configuration configuration = configuration()
                     .withAndroidSdk(parsedArgs.sdk != null ? parsedArgs.sdk : cleanFile(CommonDefaults.ANDROID_SDK))

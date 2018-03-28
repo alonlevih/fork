@@ -13,21 +13,26 @@
 package com.shazam.fork.summary;
 
 import com.google.common.base.Function;
-
 import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import static com.google.common.collect.Collections2.transform;
+import static com.shazam.fork.summary.ResultStatus.IGNORED;
 import static com.shazam.fork.summary.ResultStatus.PASS;
 
 public class OutcomeAggregator {
+    private static final Logger logger = LoggerFactory.getLogger(OutcomeAggregator.class);
 
     public boolean aggregate(Summary summary) {
-        if (summary == null || summary.getPoolSummaries().isEmpty()) {
+        if (summary == null || summary.getPoolSummaries().isEmpty() || !summary.getFatalCrashedTests().isEmpty()) {
+            if (summary != null && !summary.getFatalCrashedTests().isEmpty()) {
+                logger.error("There are tests left unprocessed: " + summary.getFatalCrashedTests());
+            }
             return false;
         }
 
@@ -53,7 +58,7 @@ public class OutcomeAggregator {
             @Override
             @Nullable
             public Boolean apply(@Nullable TestResult input) {
-                return PASS.equals(input.getResultStatus());
+                return PASS.equals(input.getResultStatus()) || IGNORED.equals(input.getResultStatus());
             }
         };
     }
@@ -61,5 +66,4 @@ public class OutcomeAggregator {
     private static Boolean and(final Collection<Boolean> booleans) {
         return BooleanUtils.and(booleans.toArray(new Boolean[booleans.size()]));
     }
-
 }

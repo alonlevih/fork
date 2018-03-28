@@ -13,11 +13,13 @@ package com.shazam.fork.runner.listeners;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.google.gson.Gson;
 import com.shazam.fork.Configuration;
+import com.shazam.fork.device.DeviceTestFilesCleanerImpl;
 import com.shazam.fork.model.Device;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.runner.ProgressReporter;
 import com.shazam.fork.system.adb.Installer;
+import com.shazam.fork.runner.TestRetryerImpl;
 import com.shazam.fork.system.io.FileManager;
 
 import java.io.File;
@@ -49,7 +51,6 @@ public class TestRunListenersFactory {
                                                       ProgressReporter progressReporter,
                                                       Queue<TestCaseEvent> testCaseEventQueue) {
         List<ITestRunListener> iTestRunListeners = new ArrayList<>(asList(
-                new RetryListener(pool, device, testCaseEventQueue, testCase, progressReporter, fileManager),
                 new ProgressTestRunListener(pool, progressReporter),
                 getForkXmlTestRunListener(fileManager, configuration.getOutput(), pool, device, testCase, progressReporter),
                 new ConsoleLoggingTestRunListener(configuration.getTestPackage(), device.getSerial(),
@@ -58,6 +59,7 @@ public class TestRunListenersFactory {
                 new HouzzSessionsListener(device, fileManager, pool, testCase),
 //                new SlowWarningTestRunListener(),
                 getScreenTraceTestRunListener(fileManager, pool, device),
+                buildRetryListener(testCase, device, pool, progressReporter, testCaseEventQueue),
                 getCoverageTestRunListener(configuration, device, fileManager, pool, testCase)));
         if (configuration.getEnableLeakCanaryDump()) {
             iTestRunListeners.add(new HouzzLeakCanaryMemoryDumpListener(device, fileManager, pool, testCase));
@@ -65,13 +67,22 @@ public class TestRunListenersFactory {
         return iTestRunListeners;
     }
 
+    private RetryListener buildRetryListener(TestCaseEvent testCase,
+                                             Device device,
+                                             Pool pool,
+                                             ProgressReporter progressReporter,
+                                             Queue<TestCaseEvent> testCaseEventQueue) {
+        TestRetryerImpl testRetryer = new TestRetryerImpl(progressReporter, pool, testCaseEventQueue);
+        DeviceTestFilesCleanerImpl deviceTestFilesCleaner = new DeviceTestFilesCleanerImpl(fileManager, pool, device);
+        return new RetryListener(pool, device, testCase, testRetryer, deviceTestFilesCleaner);
+    }
 
     private ForkXmlTestRunListener getForkXmlTestRunListener(FileManager fileManager,
-                                                                   File output,
-                                                                   Pool pool,
-                                                                   Device device,
-                                                                   TestCaseEvent testCase,
-                                                                   ProgressReporter progressReporter) {
+                                                             File output,
+                                                             Pool pool,
+                                                             Device device,
+                                                             TestCaseEvent testCase,
+                                                             ProgressReporter progressReporter) {
         ForkXmlTestRunListener xmlTestRunListener = new ForkXmlTestRunListener(fileManager, pool, device, testCase, progressReporter);
         xmlTestRunListener.setReportDir(output);
         return xmlTestRunListener;

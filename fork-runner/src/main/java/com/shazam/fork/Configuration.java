@@ -13,6 +13,7 @@
 package com.shazam.fork;
 
 import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
+import com.shazam.fork.system.axmlparser.ApplicationInfo;
 import com.shazam.fork.system.axmlparser.InstrumentationInfo;
 
 import org.slf4j.Logger;
@@ -28,10 +29,10 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.shazam.fork.system.axmlparser.InstumentationInfoFactory.parseFromFile;
+import static com.shazam.fork.system.axmlparser.InstrumentationInfoFactory.parseFromFile;
 import static java.util.Arrays.asList;
 
-public class Configuration {
+public class Configuration implements ForkConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
 
     private final File androidSdk;
@@ -60,6 +61,8 @@ public class Configuration {
     private final String testClassAnnotation;
     private final String denyPermissionsAnnotation;
     private final boolean enableLeakCanaryDump;
+    private final ApplicationInfo applicationInfo;
+    private String testMethodRegex;
 
     private Configuration(Builder builder) {
         androidSdk = builder.androidSdk;
@@ -88,53 +91,70 @@ public class Configuration {
         this.testClassAnnotation = builder.testClassAnnotation;
         this.denyPermissionsAnnotation = builder.denyPermissionsAnnotation;
         this.enableLeakCanaryDump = builder.enableLeakCanaryDump;
+        this.applicationInfo = builder.applicationInfo;
     }
 
+    @Override
     @Nonnull
     public File getAndroidSdk() {
         return androidSdk;
     }
 
+    @Override
     @Nonnull
     public File getApplicationApk() {
         return applicationApk;
     }
 
+    @Override
     @Nonnull
     public File getInstrumentationApk() {
         return instrumentationApk;
     }
 
+    @Override
     @Nonnull
     public String getApplicationPackage() {
         return applicationPackage;
     }
 
+    @Override
     @Nonnull
     public String getInstrumentationPackage() {
         return instrumentationPackage;
     }
 
+    @Override
     @Nonnull
     public String getTestRunnerClass() {
         return testRunnerClass;
     }
 
+    @Override
     @Nonnull
     public File getOutput() {
         return output;
     }
 
     @Nonnull
+    @Override
+    public String getTestMethodRegex() {
+        return testMethodRegex;
+    }
+
+    @Override
+    @Nonnull
     public String getTitle() {
         return title;
     }
 
+    @Override
     @Nonnull
     public String getSubtitle() {
         return subtitle;
     }
 
+    @Override
     @Nonnull
     public Pattern getTestClassPattern() {
         return testClassPattern;
@@ -145,49 +165,60 @@ public class Configuration {
         return testMethodPattern;
     }
 
+    @Override
     @Nonnull
     public String getTestPackage() {
         return testPackage;
     }
 
+    @Override
     public long getTestOutputTimeout() {
         return testOutputTimeout;
     }
 
+    @Override
     @Nullable
     public IRemoteAndroidTestRunner.TestSize getTestSize() {
         return testSize;
     }
 
+    @Override
     @Nonnull
     public Collection<String> getExcludedSerials() {
         return excludedSerials;
     }
 
+    @Override
     public boolean canFallbackToScreenshots() {
         return fallbackToScreenshots;
     }
 
+    @Override
     public int getTotalAllowedRetryQuota() {
         return totalAllowedRetryQuota;
     }
 
+    @Override
     public int getRetryPerTestCaseQuota() {
         return retryPerTestCaseQuota;
     }
 
+    @Override
     public boolean isCoverageEnabled() {
         return isCoverageEnabled;
     }
 
+    @Override
     public PoolingStrategy getPoolingStrategy() {
         return poolingStrategy;
     }
 
+    @Override
     public boolean isAutoGrantingPermissions() {
         return autoGrantPermissions;
     }
 
+    @Override
     public String getExcludedAnnotation() {
         return excludedAnnotation;
     }
@@ -206,6 +237,11 @@ public class Configuration {
 
     public boolean getEnableLeakCanaryDump() {
         return enableLeakCanaryDump;
+    }
+
+    @Override
+    public ApplicationInfo getApplicationInfo() {
+        return applicationInfo;
     }
 
     public static class Builder {
@@ -235,6 +271,7 @@ public class Configuration {
         private String testClassAnnotation;
         private String denyPermissionsAnnotation;
         public boolean enableLeakCanaryDump;
+        public ApplicationInfo applicationInfo;
 
         public static Builder configuration() {
             return new Builder();

@@ -9,10 +9,17 @@
  */
 package com.shazam.fork.runner;
 
-import com.android.ddmlib.*;
-import com.android.ddmlib.testrunner.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.testrunner.IRemoteAndroidTestRunner;
+import com.android.ddmlib.testrunner.ITestRunListener;
+import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.ddmlib.testrunner.TestIdentifier;
 import com.google.common.base.Strings;
 import com.shazam.fork.model.TestCaseEvent;
+import com.shazam.fork.system.PermissionGrantingManager;
 import com.shazam.fork.runner.handlers.DenyPermissionsTestRunHandler;
 import com.shazam.fork.system.io.RemoteFileManager;
 
@@ -29,20 +36,26 @@ class TestRun {
     private final String poolName;
 	private final TestRunParameters testRunParameters;
 	private final List<ITestRunListener> testRunListeners;
+	private final PermissionGrantingManager permissionGrantingManager;
 
     public TestRun(String poolName,
 				   TestRunParameters testRunParameters,
-				   List<ITestRunListener> testRunListeners) {
+				   List<ITestRunListener> testRunListeners,
+				   PermissionGrantingManager permissionGrantingManager) {
         this.poolName = poolName;
 		this.testRunParameters = testRunParameters;
 		this.testRunListeners = testRunListeners;
+		this.permissionGrantingManager = permissionGrantingManager;
 	}
 
 	public void execute() {
+		String applicationPackage = testRunParameters.getApplicationPackage();
+		IDevice device = testRunParameters.getDeviceInterface();
+
 		RemoteAndroidTestRunner runner = new RemoteAndroidTestRunner(
 				testRunParameters.getTestPackage(),
 				testRunParameters.getTestRunner(),
-				testRunParameters.getDeviceInterface());
+				device);
 
 		TestCaseEvent test = testRunParameters.getTest();
 		String testClassName = test.getTestClass();
@@ -73,16 +86,19 @@ class TestRun {
 			logger.info("No excluding any test based on annotations");
 		}
 
+		List<String> permissionsToRevoke = testRunParameters.getTest().getPermissionsToRevoke();
+
+		permissionGrantingManager.revokePermissions(applicationPackage, device, permissionsToRevoke);
+
 		try {
 			runner.run(testRunListeners);
 		} catch (ShellCommandUnresponsiveException | TimeoutException e) {
 			logger.warn("Test: " + testClassName + " got stuck. You can increase the timeout in settings if it's too strict");
 		} catch (AdbCommandRejectedException | IOException e) {
-			logger.warn(format("Error while running test %s %s", test.getTestClass(), test.getTestMethod()), e);
+			throw new RuntimeException(format("Error while running test %s %s", test.getTestClass(), test.getTestMethod()), e);
+		} finally {
+			permissionGrantingManager.restorePermissions(applicationPackage, device, permissionsToRevoke);
 		}
 
-		if (denyPermissionsTestRunHandler != null) {
-			denyPermissionsTestRunHandler.testRunEnded();
-		}
-	}
+    }
 }

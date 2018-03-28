@@ -36,7 +36,7 @@ public class Installer {
 					 String instrumentationPackage,
 					 File apk,
 					 File testApk,
-					 boolean  autoGrantPermissions) {
+					 boolean autoGrantPermissions) {
 		this.applicationPackage = applicationPackage;
 		this.instrumentationPackage = instrumentationPackage;
 		this.apk = apk;
@@ -45,24 +45,19 @@ public class Installer {
 	}
 
 	public void prepareInstallation(IDevice device) {
-		String params = optionalAutoGrantPermissionFlag(device);
-		prepareInstallation(device, params);
+		reinstall(device, applicationPackage, apk);
+		reinstall(device, instrumentationPackage, testApk);
+		grantMockLocationInMarshmallow(device, applicationPackage);
 	}
 
-	public void prepareInstallation(IDevice device, String installationParams) {
-		reinstall(device, getApplicationPackage(), getApk(), installationParams);
-		reinstall(device, getInstrumentationPackage(), getTestApk(), installationParams);
-		grantMockLocationInMarshmallow(device, getApplicationPackage());
-	}
-
-	private void reinstall(final IDevice device, final String appPackage, final File appApk, String shouldAutoGrantPermissions) {
+	private void reinstall(final IDevice device, final String appPackage, final File appApk) {
 		final String message = format("Error while installing %s on %s", appPackage, device.getSerialNumber());
 		tryThrice(true, message, () -> {
 			try {
 				logger.debug("Uninstalling {} from {}", appPackage, device.getSerialNumber());
 				device.uninstallPackage(appPackage);
 				logger.debug("Installing {} to {}", appPackage, device.getSerialNumber());
-				device.installPackage(appApk.getAbsolutePath(), true, shouldAutoGrantPermissions);
+				device.installPackage(appApk.getAbsolutePath(), true, optionalAutoGrantPermissionFlag(device));
 			} catch (InstallException e) {
 				throw new RuntimeException(message, e);
 			}
@@ -70,8 +65,8 @@ public class Installer {
 	}
 
 	@Nonnull
-	public String optionalAutoGrantPermissionFlag(IDevice device) {
-		return isMarshmallowOrMore(device) && isAutoGrantPermissions() ? "-g" : "";
+	private String optionalAutoGrantPermissionFlag(IDevice device) {
+		return isMarshmallowOrMore(device) && autoGrantPermissions ? "-g" : "";
 	}
 
 	private boolean isMarshmallowOrMore(@Nonnull IDevice device){
@@ -110,24 +105,4 @@ public class Installer {
             }
         }
     }
-
-	public String getApplicationPackage() {
-		return applicationPackage;
-	}
-
-	public String getInstrumentationPackage() {
-		return instrumentationPackage;
-	}
-
-	public File getApk() {
-		return apk;
-	}
-
-	public File getTestApk() {
-		return testApk;
-	}
-
-	public boolean isAutoGrantPermissions() {
-		return autoGrantPermissions;
-	}
 }

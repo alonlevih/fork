@@ -12,25 +12,25 @@
  */
 package com.shazam.fork.summary;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 
 public class Summary {
     private final List<PoolSummary> poolSummaries;
     private final String title;
     private final String subtitle;
-    private final ArrayList<String> ignoredTests;
-    private final Set<String> failedTests;
-    private final Set<String> flakyTests;
+    private final List<String> ignoredTests;
+    private final List<String> failedTests;
+    private final List<String> fatalCrashedTests;
+    private List<String> flakyTests;
 
     @Nonnull
     public List<PoolSummary> getPoolSummaries() {
-        return poolSummaries;
+        return unmodifiableList(poolSummaries);
     }
 
     public String getTitle() {
@@ -42,25 +42,32 @@ public class Summary {
     }
 
     @Nonnull
-    public ArrayList<String> getIgnoredTests() {
-        return ignoredTests;
+    public List<String> getIgnoredTests() {
+        return unmodifiableList(ignoredTests);
     }
 
-    public Set<String> getFailedTests() {
-        return failedTests;
+    @Nonnull
+    public List<String> getFailedTests() {
+        return unmodifiableList(failedTests);
     }
 
-    public Set<String> getFlakyTests() {
-        return flakyTests;
+    @Nonnull
+    public List<String> getFatalCrashedTests() {
+        return unmodifiableList(fatalCrashedTests);
+    }
+
+    public List<String> getFlakyTests() {
+        return unmodifiableList(flakyTests);
     }
 
     public static class Builder {
         private final List<PoolSummary> poolSummaries = new ArrayList<>();
-        private final ArrayList<String> ignoredTests = new ArrayList<>();
+        private final List<String> ignoredTests = new ArrayList<>();
         private String title = "Report Title";
         private String subtitle = "Report Subtitle";
-        private Set<String> failedTests =  new HashSet<>();
-        private Set<String> flakyTests =  new HashSet<>();
+        private List<String> failedTests = new ArrayList<>();
+        private List<String> fatalCrashedTests = new ArrayList<>();
+        public List<String> flakyTests = new ArrayList<>();
 
         public static Builder aSummary() {
             return new Builder();
@@ -86,13 +93,19 @@ public class Summary {
             return this;
         }
 
-        public Builder addFailedTests(String test) {
-            this.failedTests.add(test);
+        public Builder addFailedTests(String failedTests) {
+            this.failedTests.add(failedTests);
             return this;
         }
 
-        public Builder addFlakyTests(String test) {
-            this.flakyTests.add(test);
+        public Builder addFatalCrashedTest(String fatalCrashedTest) {
+            fatalCrashedTests.add(fatalCrashedTest);
+            return this;
+        }
+
+
+        public Builder addFlakyTest(String flakyTest) {
+            flakyTests.add(flakyTest);
             return this;
         }
 
@@ -108,5 +121,6 @@ public class Summary {
         ignoredTests = builder.ignoredTests;
         failedTests = builder.failedTests;
         flakyTests = builder.flakyTests;
+        fatalCrashedTests = builder.fatalCrashedTests;
     }
 }

@@ -40,7 +40,7 @@ public class DenyPermissionsTestRunHandler {
 
     public void testRunStarted() {
         if (shouldDenyPermissions()) {
-            installer.prepareInstallation(device, "");
+            installer.prepareInstallation(device);
         }
 	}
 

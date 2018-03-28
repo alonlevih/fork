@@ -14,12 +14,19 @@ package com.shazam.fork.summary;
 
 import com.shazam.fork.model.Device;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.shazam.fork.summary.ResultStatus.ERROR;
+import static com.shazam.fork.summary.ResultStatus.FAIL;
+import static com.shazam.fork.summary.ResultStatus.IGNORED;
+import static com.shazam.fork.summary.ResultStatus.PASS;
+import static java.lang.String.format;
+import static java.util.Locale.ENGLISH;
+import static java.util.Objects.hash;
 
 public class TestResult {
     public static final String SUMMARY_KEY_TOTAL_FAILURE_COUNT = "totalFailureCount";
@@ -31,6 +38,7 @@ public class TestResult {
     private final String errorTrace;
     private final String failureTrace;
     private final Map<String, String> testMetrics;
+    private final boolean isIgnored;
 
     public Device getDevice() {
         return device;
@@ -38,6 +46,10 @@ public class TestResult {
 
     public float getTimeTaken() {
         return timeTaken;
+    }
+
+    public String getTestFullName() {
+        return testClass + ":" + testMethod;
     }
 
     public String getTestClass() {
@@ -60,13 +72,16 @@ public class TestResult {
 
     @Nonnull
     public ResultStatus getResultStatus() {
+        if (isIgnored) {
+            return IGNORED;
+        }
         if (!isNullOrEmpty(errorTrace)) {
-            return ResultStatus.ERROR;
+            return ERROR;
         }
         if (!isNullOrEmpty(failureTrace)) {
-            return ResultStatus.FAIL;
+            return FAIL;
         }
-        return ResultStatus.PASS;
+        return PASS;
     }
 
     public String getTrace() {
@@ -80,10 +95,31 @@ public class TestResult {
         }
     }
 
-    public void setTotalFailuresCount(int sum) {
-        if (testMetrics != null) {
-            testMetrics.put(SUMMARY_KEY_TOTAL_FAILURE_COUNT, String.valueOf(sum));
+    public String getDeviceSerial() {
+        if (device != null) {
+            return device.getSerial();
         }
+        return "Unknown device";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TestResult that = (TestResult) o;
+        return Objects.equals(device, that.device) &&
+                Objects.equals(testClass, that.testClass) &&
+                Objects.equals(testMethod, that.testMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return hash(device, testClass, testMethod);
+    }
+
+    @Override
+    public String toString() {
+        return format(ENGLISH, "TestResult{test=%s,device=%s,time=%f}", getTestFullName(), device, timeTaken);
     }
 
     public static class Builder {
@@ -93,6 +129,7 @@ public class TestResult {
         private String testMethod;
         private String errorTrace;
         private String failureTrace;
+        private boolean isIgnored;
         private Map<String, String> testMetrics = new HashMap<>();
 
         public static Builder aTestResult() {
@@ -133,6 +170,11 @@ public class TestResult {
             return this;
         }
 
+        public Builder withIgnored(boolean isIgnored) {
+            this.isIgnored = isIgnored;
+            return this;
+        }
+
         public Builder withTestMetrics(Map<String, String> testMetrics) {
             this.testMetrics.clear();
             this.testMetrics.putAll(testMetrics);
@@ -152,6 +194,7 @@ public class TestResult {
         testMethod = builder.testMethod;
         errorTrace = builder.errorTrace;
         failureTrace = builder.failureTrace;
-        this.testMetrics = builder.testMetrics;
+        testMetrics = builder.testMetrics;
+        isIgnored = builder.isIgnored;
     }
 }
