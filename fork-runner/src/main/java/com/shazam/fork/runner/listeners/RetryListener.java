@@ -13,6 +13,7 @@ package com.shazam.fork.runner.listeners;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.shazam.fork.device.DeviceTestFilesCleaner;
 import com.shazam.fork.model.Device;
+import com.shazam.fork.model.FailedTestCaseEvent;
 import com.shazam.fork.model.Pool;
 import com.shazam.fork.model.TestCaseEvent;
 import com.shazam.fork.runner.TestRetryer;
@@ -32,6 +33,7 @@ public class RetryListener extends NoOpITestRunListener {
     private final DeviceTestFilesCleaner deviceTestFilesCleaner;
     private TestIdentifier startedTest;
     private TestIdentifier failedTest;
+    private String failureTrace;
 
     public RetryListener(Pool pool,
                          Device device,
@@ -56,11 +58,13 @@ public class RetryListener extends NoOpITestRunListener {
     @Override
     public void testFailed(TestIdentifier test, String trace) {
         failedTest = test;
+        failureTrace = trace;
     }
 
     @Override
     public void testRunFailed(String errorMessage) {
         logger.info("Test run failed due to a fatal error: " + errorMessage);
+        failureTrace = errorMessage;
         if (failedTest == null) {
             logger.info("Reschedule all started tests by this test run");
             rescheduleTestExecution(startedTest);
@@ -74,12 +78,12 @@ public class RetryListener extends NoOpITestRunListener {
         }
     }
 
-    private void rescheduleTestExecution(TestIdentifier test) {
-        if (testRetryer.rescheduleTestExecution(test, currentTestCaseEvent)) {
-            logger.info("Test " + test.toString() + " enqueued again into pool:" + pool.getName());
-            removeFailureTraceFiles(test);
+    private void rescheduleTestExecution(TestIdentifier testIdentifier) {
+        if (testRetryer.rescheduleTestExecution(testIdentifier, new FailedTestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), currentTestCaseEvent.isIgnored(), currentTestCaseEvent.getAnnotations(), currentTestCaseEvent.getPermissionsToRevoke(), currentTestCaseEvent.getProperties(), failureTrace))) {
+            logger.info("Test " + testIdentifier.toString() + " enqueued again into pool:" + pool.getName());
+            removeFailureTraceFiles(testIdentifier);
         } else {
-            logger.info("Test " + test.toString() + " failed on device " + device.getSafeSerial()
+            logger.info("Test " + testIdentifier.toString() + " failed on device " + device.getSafeSerial()
                     + " but retry is not allowed.");
         }
     }

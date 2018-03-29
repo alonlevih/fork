@@ -19,9 +19,9 @@ public class TestRetryerImpl implements TestRetryer {
     }
 
     @Override
-    public boolean rescheduleTestExecution(TestIdentifier testIdentifier, TestCaseEvent testCaseEvent) {
+    public boolean rescheduleTestExecution(TestIdentifier testIdentifier, FailedTestCaseEvent testCaseEvent) {
         progressReporter.recordFailedTestCase(pool, new TestCaseEvent(testIdentifier));
-        if (progressReporter.requestRetry(pool,  new FailedTestCaseEvent(testIdentifier.getTestName(), testIdentifier.getClassName(), testCaseEvent.isIgnored(), testCaseEvent.getAnnotations(), testCaseEvent.getPermissionsToRevoke(), testCaseEvent.getProperties(), ((FailedTestCaseEvent) testCaseEvent).getFailureTrace()))) {
+        if (progressReporter.requestRetry(pool,  testCaseEvent)) {
             queueOfTestsInPool.add(testCaseEvent);
             return true;
         }

@@ -68,7 +68,7 @@ public class DeviceTestRunner implements Runnable {
                             queueOfTestsInPool);
                     testRun.execute();
                 } catch (Exception ex) {
-                    // logger.warn(e.toString());
+                     logger.warn(ex.toString());
                 }
             }
         }
