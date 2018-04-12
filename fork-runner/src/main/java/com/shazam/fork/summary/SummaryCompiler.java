@@ -104,7 +104,7 @@ public class SummaryCompiler {
 
     private void addFailedOrFatalCrashedTests(Collection<TestResult> testResults, Summary.Builder summaryBuilder) {
         for (TestResult testResult : testResults) {
-            int totalFailureCount = testResult.getTotalFailureCount();
+            int totalFailureCount = testResult.getTotalFailureCount() + 1;
             if (totalFailureCount > 0) {
                 if (totalFailureCount > configuration.getRetryPerTestCaseQuota()) {
                     String failedTest = totalFailureCount + " times " + testResult.getTestClass()
